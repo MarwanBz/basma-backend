@@ -1,12 +1,12 @@
+import { AppError } from "@/utils/appError";
+import { ENV } from "@/config/env";
+import { EmailService } from "./email.service";
+import { ErrorCode } from "@/utils/errorCodes";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import { ENV } from "@/config/env";
-import { AppError } from "@/utils/appError";
-import { logger } from "@/config/logger";
-import { ErrorCode } from "@/utils/errorCodes";
 import crypto from "crypto";
-import { EmailService } from "./email.service";
+import jwt from "jsonwebtoken";
+import { logger } from "@/config/logger";
 
 const prisma = new PrismaClient();
 
@@ -28,16 +28,17 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const verificationToken = this.generateVerificationToken();
-    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    // Email verification disabled for now
+    // const verificationToken = this.generateVerificationToken();
+    // const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     const user = await prisma.user.create({
       data: {
         email,
         name,
         password: hashedPassword,
-        emailVerificationToken: verificationToken,
-        emailVerificationExpires: verificationExpires,
+        // emailVerificationToken: verificationToken,
+        // emailVerificationExpires: verificationExpires,
       },
       select: {
         id: true,
@@ -48,8 +49,8 @@ export class AuthService {
       },
     });
 
-    // Send verification email
-    await this.emailService.sendVerificationEmail(email, name, verificationToken);
+    // Send verification email - DISABLED FOR NOW
+    // await this.emailService.sendVerificationEmail(email, name, verificationToken);
 
     return user;
   }
@@ -103,9 +104,9 @@ export class AuthService {
   async resendVerificationEmail(email: string) {
     // Clean up expired tokens first
     await this.cleanupExpiredTokens();
-    
+
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
     });
 
     if (!user) {
@@ -148,13 +149,14 @@ export class AuthService {
       );
     }
 
-    if (!user.emailVerified) {
-      throw new AppError(
-        "Please verify your email before logging in",
-        401,
-        ErrorCode.UNAUTHORIZED
-      );
-    }
+    // Email verification disabled for now
+    // if (!user.emailVerified) {
+    //   throw new AppError(
+    //     "Please verify your email before logging in",
+    //     401,
+    //     ErrorCode.UNAUTHORIZED
+    //   );
+    // }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
