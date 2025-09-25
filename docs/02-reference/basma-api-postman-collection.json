@@ -1,0 +1,504 @@
+{
+  "info": {
+    "name": "Basma Backend API - Complete Collection",
+    "description": "Complete API collection for Basma Backend with Authentication, User Management, and Super Admin functionality",
+    "schema": "https://schema.postman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4300",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🏥 Health & Info",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          }
+        },
+        {
+          "name": "API Documentation",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api-docs"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/auth/register",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"Test123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('access_token', response.data.access_token);",
+                  "    console.log('Token saved:', response.data.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"superadmin@basma.com\",\n  \"password\": \"SuperAdmin123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/auth/forgot-password",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/auth/reset-password",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset-token-here\",\n  \"newPassword\": \"NewPassword123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/auth/refresh",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"refresh-token-here\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 User Management",
+      "item": [
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/users/me",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Current User",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/api/users/me",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👑 Super Admin",
+      "item": [
+        {
+          "name": "📊 System Management",
+          "item": [
+            {
+              "name": "Get System Stats",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/api/super-admin/system/stats",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "👥 User Management",
+          "item": [
+            {
+              "name": "Get All Users",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/api/super-admin/users",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get User by ID",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/api/super-admin/users/:id",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create User",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('created_user_id', response.data.id);",
+                      "    console.log('User created with ID:', response.data.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "url": "{{base_url}}/api/super-admin/users",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"New User\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"NewUser123!\",\n  \"role\": \"CUSTOMER\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Update User",
+              "request": {
+                "method": "PUT",
+                "url": "{{base_url}}/api/super-admin/users/:id",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Updated User Name\",\n  \"role\": \"TECHNICIAN\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete User",
+              "request": {
+                "method": "DELETE",
+                "url": "{{base_url}}/api/super-admin/users/:id",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "📋 Bulk Operations",
+          "item": [
+            {
+              "name": "Bulk Create Users",
+              "request": {
+                "method": "POST",
+                "url": "{{base_url}}/api/super-admin/users/bulk",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"users\": [\n    {\n      \"name\": \"Bulk User 1\",\n      \"email\": \"bulk1@example.com\",\n      \"password\": \"BulkUser123!\",\n      \"role\": \"CUSTOMER\"\n    },\n    {\n      \"name\": \"Bulk User 2\",\n      \"email\": \"bulk2@example.com\",\n      \"password\": \"BulkUser123!\",\n      \"role\": \"TECHNICIAN\"\n    }\n  ]\n}"
+                }
+              }
+            },
+            {
+              "name": "Bulk Update Users",
+              "request": {
+                "method": "PUT",
+                "url": "{{base_url}}/api/super-admin/users/bulk",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"updates\": [\n    {\n      \"id\": \"user-id-1\",\n      \"role\": \"BASMA_ADMIN\"\n    },\n    {\n      \"id\": \"user-id-2\",\n      \"name\": \"Updated Name\"\n    }\n  ]\n}"
+                }
+              }
+            },
+            {
+              "name": "Bulk Delete Users",
+              "request": {
+                "method": "DELETE",
+                "url": "{{base_url}}/api/super-admin/users/bulk",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"userIds\": [\"user-id-1\", \"user-id-2\"]\n}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔒 Security & Audit",
+          "item": [
+            {
+              "name": "Get Security Logs",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/api/super-admin/security/logs",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Audit Logs",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/api/super-admin/audit/logs",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📊 Monitoring",
+      "item": [
+        {
+          "name": "Get Metrics",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/monitoring/metrics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧪 Test Authorization",
+      "description": "Test endpoints to verify role-based access control",
+      "item": [
+        {
+          "name": "❌ Unauthorized Super Admin Access",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/super-admin/users",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid-token"
+              }
+            ]
+          }
+        },
+        {
+          "name": "❌ No Token Super Admin Access",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/super-admin/users"
+          }
+        }
+      ]
+    }
+  ]
+}

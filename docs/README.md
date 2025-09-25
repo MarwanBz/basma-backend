@@ -49,6 +49,8 @@
 - `what-we-changed.md` - Recent changes summary
 - `super-admin-module.md` - Super Admin implementation
 - `common-issues.md` - Problems & solutions
+- `basma-api-postman-collection.json` - Complete API testing collection
+- `postman-collection-guide.md` - How to use the Postman collection
 
 ### **03-future-specs/ (What's planned)**
 
