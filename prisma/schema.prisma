@@ -25,6 +25,11 @@ model user {
 }
 
 enum user_role {
-  ADMIN
-  USER
+  SUPER_ADMIN
+  MAINTENANCE_ADMIN
+  BASMA_ADMIN
+  TECHNICIAN
+  CUSTOMER
+  ADMIN // Keep existing ADMIN role
+  USER // Keep for backward compatibility
 }
