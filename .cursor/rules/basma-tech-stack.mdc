@@ -1,0 +1,111 @@
+This rule explains the Basma backend tech stack, architecture patterns, and development conventions.
+
+# Basma Backend Tech Stack Rules
+
+## Core Technologies
+
+- Use Node.js with Express.js and TypeScript for all backend development
+- Use MySQL 8.0 with Prisma ORM for database operations
+- Use JWT with refresh tokens for authentication
+- Use Zod for request validation
+- Use Winston for logging with daily rotation
+- Use Jest/Vitest for testing
+
+## Project Structure Conventions
+
+- Controllers: Handle HTTP requests and responses only
+- Services: Contain all business logic and database operations
+- Middleware: Handle cross-cutting concerns (auth, validation, logging)
+- Routes: Define API endpoints and apply middleware
+- Validators: Use Zod schemas for request validation
+- Utils: Contain reusable helper functions
+
+## Database Patterns
+
+- Use UUID primary keys with @default(uuid())
+- Use snake_case for database column names with @map()
+- Use PascalCase for Prisma model names
+- Include createdAt and updatedAt timestamps on all models
+- Use proper foreign key relationships with onDelete cascade where appropriate
+- Use enums for status fields (user_role, request_status, etc.)
+
+## API Design Patterns
+
+- Follow RESTful conventions for endpoint naming
+- Use proper HTTP status codes (200, 201, 400, 401, 403, 404, 500)
+- Return consistent JSON responses with success, message, and data fields
+- Use middleware for authentication (requireAuth) and role checks
+- Apply rate limiting (authLimiter for auth routes, apiLimiter for others)
+- Validate all inputs with Zod schemas using validateRequest middleware
+
+## Authentication & Authorization
+
+- Use JWT access tokens (short-lived) and refresh tokens (long-lived)
+- Store refresh tokens in database with expiration and revocation support
+- Implement role-based access control with user_role enum
+- Use bcrypt for password hashing
+- Include email verification and password reset flows
+- Apply different rate limits for auth endpoints (5/min) vs API endpoints (100/min)
+
+## Error Handling
+
+- Use centralized error handling middleware as the last middleware
+- Throw AppError instances with proper error codes and messages
+- Include request IDs for error tracking
+- Log errors with Winston logger
+- Return appropriate HTTP status codes with consistent error format
+
+## Monitoring & Observability
+
+- Use Prometheus for metrics collection
+- Include custom metrics for business logic (active users, request counts)
+- Use Grafana for dashboard visualization
+- Implement health checks (/health endpoint)
+- Use Winston logger with daily file rotation
+- Include request ID tracking for distributed tracing
+
+## Docker & Deployment
+
+- Use multi-stage Docker builds for production optimization
+- Include health checks in Docker containers
+- Use docker-compose for local development with hot reload
+- Include separate environments for development and production
+- Use volume mounts for logs and persistent data
+- Apply security best practices (non-root user, minimal privileges)
+
+## Code Quality Standards
+
+- Use TypeScript strict mode for type safety
+- Follow consistent naming conventions (camelCase for JS, PascalCase for types)
+- Use async/await pattern for all asynchronous operations
+- Include comprehensive error handling with try/catch blocks
+- Write descriptive function and variable names
+- Use Prettier for code formatting and ESLint for linting
+
+## Testing Conventions
+
+- Write unit tests for all service methods
+- Write integration tests for API endpoints using supertest
+- Use test databases with proper setup/teardown
+- Include test helpers for common operations (user creation, auth)
+- Aim for high test coverage on business logic
+- Use descriptive test names that explain the expected behavior
+
+## Security Best Practices
+
+- Use Helmet for security headers
+- Implement CORS with specific origin configuration
+- Apply input validation and sanitization
+- Use parameterized queries through Prisma ORM
+- Implement proper session management with refresh token rotation
+- Apply rate limiting to prevent abuse
+- Use environment variables for sensitive configuration
+
+## Performance Optimization
+
+- Use compression middleware for response compression
+- Implement caching where appropriate
+- Use database indexes on frequently queried columns
+- Apply pagination for large data sets
+- Use connection pooling for database connections
+- Monitor and optimize slow queries
