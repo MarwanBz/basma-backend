@@ -1,5 +1,6 @@
-import { z } from "zod";
 import "dotenv/config";
+
+import { z } from "zod";
 
 const envSchema = z.object({
   MYSQL_DATABASE_URL: z.string(),
@@ -15,28 +16,50 @@ const envSchema = z.object({
   JWT_EXPIRY: z.string().regex(/^\d+[smhd]$/),
   REFRESH_TOKEN_EXPIRY: z.string().regex(/^\d+[smhd]$/),
   FRONTEND_URL: z.string().url(),
-  SMTP_HOST: process.env.NODE_ENV === "development" ? z.string().optional() : z.string(),
-  SMTP_PORT: process.env.NODE_ENV === "development" ? z.string().transform(Number).optional() : z.string().transform(Number),
-  SMTP_USER: process.env.NODE_ENV === "development" ? z.string().optional() : z.string(),
-  SMTP_PASSWORD: process.env.NODE_ENV === "development" ? z.string().optional() : z.string(),
-  SMTP_FROM: process.env.NODE_ENV === "development" ? z.string().email().optional() : z.string().email(),
-  APP_NAME: process.env.NODE_ENV === "development" ? z.string().optional().default("Express Boilerplate") : z.string(),
+  // Legacy SMTP configuration (deprecated - use RESEND_API_KEY instead)
+  SMTP_HOST:
+    process.env.NODE_ENV === "development"
+      ? z.string().optional()
+      : z.string().optional(),
+  SMTP_PORT:
+    process.env.NODE_ENV === "development"
+      ? z.string().transform(Number).optional()
+      : z.string().transform(Number).optional(),
+  SMTP_USER:
+    process.env.NODE_ENV === "development"
+      ? z.string().optional()
+      : z.string().optional(),
+  SMTP_PASSWORD:
+    process.env.NODE_ENV === "development"
+      ? z.string().optional()
+      : z.string().optional(),
+  SMTP_FROM:
+    process.env.NODE_ENV === "development"
+      ? z.string().email().optional()
+      : z.string().email().optional(),
+
+  // Resend configuration
+  RESEND_API_KEY:
+    process.env.NODE_ENV === "development" ? z.string().optional() : z.string(),
+  RESEND_FROM_EMAIL:
+    process.env.NODE_ENV === "development"
+      ? z.string().email().optional()
+      : z.string().email(),
+  APP_NAME:
+    process.env.NODE_ENV === "development"
+      ? z.string().optional().default("Express Boilerplate")
+      : z.string(),
   SERVER_URL: z.string().url(),
-  PROMETHEUS_URL: z.string().url().optional().default('http://localhost:9090'),
+  PROMETHEUS_URL: z.string().url().optional().default("http://localhost:9090"),
 });
 
 export const ENV = envSchema.parse(process.env);
 
 // Add validation for production environment
-if (process.env.NODE_ENV === 'production') {
-  const requiredFields = [
-    'SMTP_HOST',
-    'SMTP_PORT',
-    'SMTP_USER',
-    'SMTP_PASSWORD'
-  ];
-  
-  requiredFields.forEach(field => {
+if (process.env.NODE_ENV === "production") {
+  const requiredFields = ["RESEND_API_KEY", "RESEND_FROM_EMAIL"];
+
+  requiredFields.forEach((field) => {
     if (!process.env[field]) {
       throw new Error(`Missing required env variable: ${field}`);
     }
