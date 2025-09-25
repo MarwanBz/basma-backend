@@ -1,5 +1,5 @@
-import { PrismaClient } from "@prisma/client";
 import { AppError } from "@/utils/appError";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -45,7 +45,14 @@ export class UserService {
     data: Partial<{
       name: string;
       email: string;
-      role: "ADMIN" | "USER";
+      role:
+        | "SUPER_ADMIN"
+        | "MAINTENANCE_ADMIN"
+        | "BASMA_ADMIN"
+        | "TECHNICIAN"
+        | "CUSTOMER"
+        | "ADMIN"
+        | "USER";
     }>
   ) {
     return prisma.user.update({
@@ -72,7 +79,14 @@ export class UserService {
     name: string;
     email: string;
     password: string;
-    role?: "ADMIN" | "USER";
+    role?:
+      | "SUPER_ADMIN"
+      | "MAINTENANCE_ADMIN"
+      | "BASMA_ADMIN"
+      | "TECHNICIAN"
+      | "CUSTOMER"
+      | "ADMIN"
+      | "USER";
   }) {
     return prisma.user.create({
       data,
