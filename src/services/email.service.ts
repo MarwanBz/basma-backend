@@ -1,53 +1,53 @@
-import nodemailer from "nodemailer";
+import {
+  getPasswordResetEmailTemplate,
+  getVerificationEmailTemplate,
+} from "@/templates/emails";
+
 import { ENV } from "@/config/env";
+import { Resend } from "resend";
 import { logger } from "@/config/logger";
-import { getVerificationEmailTemplate, getPasswordResetEmailTemplate } from '@/templates/emails';
 
 export class EmailService {
-  private transporter!: nodemailer.Transporter;
+  private resend: Resend;
   private readonly fromAddress: string;
 
   constructor() {
-    // Production SMTP setup
-    this.transporter = nodemailer.createTransport({
-      host: ENV.SMTP_HOST,
-      port: ENV.SMTP_PORT,
-      secure: ENV.SMTP_PORT === 465,
-      auth: {
-        user: ENV.SMTP_USER,
-        pass: ENV.SMTP_PASSWORD,
-      },
-      tls: {
-        rejectUnauthorized: true
-      }
-    });
-    this.fromAddress = ENV.SMTP_FROM || 'noreply@example.com';
-    
-    logger.info("Using SMTP configuration", {
+    // Initialize Resend with API key
+    this.resend = new Resend(ENV.RESEND_API_KEY);
+    this.fromAddress = ENV.RESEND_FROM_EMAIL || "noreply@example.com";
+
+    logger.info("Using Resend configuration", {
       context: "EmailService.constructor",
-      host: ENV.SMTP_HOST,
+      fromAddress: this.fromAddress,
     });
 
     // Add email template precompilation
     this.precompileTemplates();
-    
-    // Add connection testing
+
+    // Test Resend connection
     this.testConnection();
   }
 
   private async testConnection() {
     try {
-      await this.transporter.verify();
-      logger.info("SMTP connection verified");
+      // Test Resend connection by sending a test email to ourselves
+      if (ENV.NODE_ENV === "development") {
+        logger.info("Resend connection test skipped in development mode");
+        return;
+      }
+
+      // In production, we could test with a simple API call
+      // For now, we'll just log that we're using Resend
+      logger.info("Resend client initialized successfully");
     } catch (error) {
-      logger.error("SMTP connection failed", { error });
+      logger.error("Resend connection failed", { error });
     }
   }
 
   private precompileTemplates() {
     try {
-      getVerificationEmailTemplate('test', 'test'); // Pre-compile by running once
-      getPasswordResetEmailTemplate('test', 'test'); // Pre-compile by running once
+      getVerificationEmailTemplate("test", "test"); // Pre-compile by running once
+      getPasswordResetEmailTemplate("test", "test"); // Pre-compile by running once
       logger.info("Email templates precompiled successfully");
     } catch (error) {
       logger.error("Failed to precompile email templates", { error });
@@ -59,20 +59,24 @@ export class EmailService {
     name: string,
     verificationToken: string
   ): Promise<void> {
-    const verificationUrl = `${ENV.SERVER_URL}/api/auth/verify-email/${verificationToken}`; // TODO: Change this to frontend URL
+    const verificationUrl = `${ENV.FRONTEND_URL}/verify-email/${verificationToken}`;
 
     try {
-      const info = await this.transporter.sendMail({
+      const { data, error } = await this.resend.emails.send({
         from: this.fromAddress,
-        to,
+        to: [to],
         subject: "Verify your email address",
         html: getVerificationEmailTemplate(name, verificationUrl),
       });
 
+      if (error) {
+        throw new Error(`Resend error: ${error.message}`);
+      }
+
       logger.info("Verification email sent", {
         context: "EmailService.sendVerificationEmail",
         to,
-        messageId: info.messageId,
+        messageId: data?.id,
       });
     } catch (error) {
       logger.error("Failed to send verification email", {
@@ -80,6 +84,10 @@ export class EmailService {
         error: error instanceof Error ? error.message : "Unknown error",
         to,
       });
+      // In development, don't fail the request due to email errors
+      if (ENV.NODE_ENV === "development") {
+        return;
+      }
       throw error;
     }
   }
@@ -89,20 +97,24 @@ export class EmailService {
     name: string,
     resetToken: string
   ): Promise<void> {
-    const resetUrl = `${ENV.SERVER_URL}/reset-password/${resetToken}`; // TODO: Change this to frontend URL
+    const resetUrl = `${ENV.FRONTEND_URL}/reset-password/${resetToken}`;
 
     try {
-      const info = await this.transporter.sendMail({
+      const { data, error } = await this.resend.emails.send({
         from: this.fromAddress,
-        to,
+        to: [to],
         subject: "Reset Your Password",
         html: getPasswordResetEmailTemplate(name, resetUrl),
       });
 
+      if (error) {
+        throw new Error(`Resend error: ${error.message}`);
+      }
+
       logger.info("Password reset email sent", {
         context: "EmailService.sendPasswordResetEmail",
         to,
-        messageId: info.messageId,
+        messageId: data?.id,
       });
     } catch (error) {
       logger.error("Failed to send password reset email", {
@@ -110,7 +122,52 @@ export class EmailService {
         error: error instanceof Error ? error.message : "Unknown error",
         to,
       });
+      // In development, don't fail the request due to email errors
+      if (ENV.NODE_ENV === "development") {
+        return;
+      }
       throw error;
     }
   }
-} 
+
+  // Generic method for sending custom emails
+  async sendEmail(
+    to: string | string[],
+    subject: string,
+    html: string,
+    text?: string
+  ): Promise<void> {
+    try {
+      const { data, error } = await this.resend.emails.send({
+        from: this.fromAddress,
+        to: Array.isArray(to) ? to : [to],
+        subject,
+        html,
+        text,
+      });
+
+      if (error) {
+        throw new Error(`Resend error: ${error.message}`);
+      }
+
+      logger.info("Email sent successfully", {
+        context: "EmailService.sendEmail",
+        to: Array.isArray(to) ? to : [to],
+        subject,
+        messageId: data?.id,
+      });
+    } catch (error) {
+      logger.error("Failed to send email", {
+        context: "EmailService.sendEmail",
+        error: error instanceof Error ? error.message : "Unknown error",
+        to: Array.isArray(to) ? to : [to],
+        subject,
+      });
+      // In development, don't fail the request due to email errors
+      if (ENV.NODE_ENV === "development") {
+        return;
+      }
+      throw error;
+    }
+  }
+}
