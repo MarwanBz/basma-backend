@@ -71,6 +71,7 @@
     "jsonwebtoken": "^9.0.2",
     "module-alias": "^2.2.3",
     "nodemailer": "^6.9.16",
+    "postmanify-express": "^2.2.1",
     "prom-client": "^15.1.3",
     "resend": "^6.1.0",
     "response-time": "^2.3.3",
