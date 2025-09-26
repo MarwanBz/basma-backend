@@ -1,0 +1,211 @@
+# Basma Maintenance Management System - Backend Development 
+
+## Overview
+Basma is a comprehensive maintenance request management system designed for Basma Real Estate Investment and Development Company. The system streamlines maintenance request handling across multiple properties and buildings, providing a role-based platform that enables efficient communication between customers, technicians, and management.
+
+The backend serves as the core API that powers the entire ecosystem, handling authentication, request management, user roles, real-time updates, and comprehensive monitoring.
+
+## Core Features
+
+### Authentication & Authorization System
+- JWT-based authentication with refresh tokens for secure session management
+- Role-based access control (RBAC) with hierarchical permissions
+- Email verification system for new user registrations
+- Password reset functionality with secure token-based reset links
+- Session management with automatic token refresh capabilities
+
+### User Management System
+- Five distinct user roles: SUPER_ADMIN, MAINTENANCE_ADMIN, BASMA_ADMIN, TECHNICIAN, CUSTOMER
+- Hierarchical permission system with role-specific access controls
+- User profile management with secure data handling
+- User creation, modification, and deletion capabilities
+- Role assignment and permission validation
+
+### Maintenance Request Management
+- Complete CRUD operations for maintenance requests
+- Request lifecycle management: DRAFT → SUBMITTED → ASSIGNED → IN_PROGRESS → COMPLETED → CLOSED
+- Priority system: Low, Medium, High, Urgent
+- Category-based request classification (Plumbing, Electrical, HVAC, Structural, Security, Cleaning, Emergency)
+- Status transition validation with business rule enforcement
+- Request assignment system (both self-assignment and manual assignment)
+
+### Real-time Communication
+- WebSocket integration for real-time status updates
+- Live notifications for request status changes
+- Real-time dashboard updates for managers and technicians
+- Connection management with rate limiting and authentication
+
+### Monitoring & Analytics
+- Prometheus metrics integration for performance monitoring
+- Request resolution time tracking
+- User activity monitoring
+- System health monitoring with readiness and liveness probes
+- Comprehensive logging system with daily rotation
+
+## User Experience
+
+### API Design Philosophy
+- RESTful API design with clear, intuitive endpoints
+- Consistent response formats with standardized error handling
+- Comprehensive input validation using Zod schemas
+- Rate limiting to prevent abuse and ensure fair usage
+- Swagger/OpenAPI documentation for easy integration
+
+### Performance Requirements
+- Request list loading: < 500ms response time
+- Request creation: < 200ms response time
+- Status updates: < 100ms response time
+- Support for 100+ concurrent users
+- Database optimization for handling 10,000+ requests
+
+### Security Standards
+- Helmet security headers for enhanced protection
+- CORS configuration for secure cross-origin requests
+- Input sanitization and validation at all endpoints
+- Secure password hashing using bcrypt
+- Environment-based configuration management
+
+## Technical Architecture
+
+### Database Design
+- Prisma ORM with MySQL for robust data management
+- Optimized schema design for maintenance request workflows
+- Database migrations for version control and deployment
+- Connection pooling for efficient resource utilization
+- Indexing strategy for performance optimization
+
+### Middleware Stack
+- Authentication middleware for protected routes
+- Request logging and monitoring middleware
+- Error handling with structured error responses
+- Performance monitoring and metrics collection
+- Security headers and rate limiting
+
+### Testing Infrastructure
+- Comprehensive unit testing with Jest
+- End-to-end testing for complete workflows
+- Test helpers and utilities for consistent testing
+- Coverage reporting and quality metrics
+- Automated testing in CI/CD pipeline
+
+### Development Infrastructure
+- Docker containerization for consistent environments
+- Docker Compose for local development stack
+- Hot reload development environment
+- TypeScript for type safety and better developer experience
+- ESLint and Prettier for code quality and consistency
+
+## Development Roadmap
+
+### Phase 1: Core Backend Infrastructure (Current State)
+- Express.js application setup with TypeScript
+- Database schema design and Prisma integration
+- Authentication system with JWT implementation
+- Basic CRUD operations for users and requests
+- Role-based access control implementation
+- WebSocket server for real-time communication
+- Monitoring and logging infrastructure
+- Docker development environment
+
+### Phase 2: Enhanced Request Management
+- Advanced request filtering and search capabilities
+- Request assignment optimization algorithms
+- Bulk operations for request management
+- Advanced status transition validations
+- Request priority and urgency handling
+- Comprehensive audit logging for all operations
+
+### Phase 3: Advanced Features & Optimization
+- File attachment support for requests
+- Advanced analytics and reporting endpoints
+- Performance optimization and caching strategies
+- Advanced notification system
+- API versioning for backward compatibility
+- Automated request routing based on categories
+
+### Phase 4: Integration & Scalability
+- External system integrations (if required)
+- Advanced caching with Redis
+- Database optimization for large-scale operations
+- Multi-tenant architecture preparation
+- Advanced monitoring and alerting
+- Load balancing and horizontal scaling preparation
+
+## Logical Dependency Chain
+
+### Foundation Layer (Priority 1)
+1. Database schema finalization and optimization
+2. Authentication and authorization system completion
+3. Core API endpoints for user and request management
+4. Basic security middleware implementation
+5. Error handling and validation systems
+
+### Core Business Logic (Priority 2)
+1. Request lifecycle management with all status transitions
+2. Role-based permission enforcement
+3. Assignment system (both manual and self-assignment)
+4. Real-time updates via WebSocket
+5. Basic reporting and statistics endpoints
+
+### Enhancement Layer (Priority 3)
+1. Advanced filtering and search capabilities
+2. Performance optimization and caching
+3. Comprehensive monitoring and alerting
+4. Advanced security features
+5. API documentation and testing infrastructure
+
+### Production Readiness (Priority 4)
+1. Load testing and performance tuning
+2. Security auditing and penetration testing
+3. Deployment automation and CI/CD
+4. Monitoring dashboard setup
+5. Documentation completion and user guides
+
+## Risks and Mitigations
+
+### Technical Challenges
+- **Database Performance**: Implement proper indexing, query optimization, and connection pooling
+- **Concurrent User Load**: Use load testing to identify bottlenecks and implement caching strategies
+- **Real-time Communication**: Implement WebSocket connection management with automatic reconnection
+- **Security Vulnerabilities**: Regular security audits, dependency updates, and penetration testing
+
+### Development Approach
+- Start with MVP functionality to get core features working quickly
+- Implement comprehensive testing from the beginning
+- Use TypeScript for better code quality and maintainability
+- Follow security best practices throughout development
+- Implement monitoring and logging early for better debugging
+
+### Resource Management
+- Prioritize core business logic over advanced features
+- Use existing, well-tested libraries and frameworks
+- Implement proper error handling to prevent system crashes
+- Plan for scalability from the beginning with proper architecture
+
+## Appendix
+
+### Current Technology Stack
+- **Runtime**: Node.js with TypeScript
+- **Framework**: Express.js with comprehensive middleware
+- **Database**: MySQL with Prisma ORM
+- **Authentication**: JWT with refresh tokens
+- **Real-time**: WebSocket with custom message handling
+- **Monitoring**: Prometheus + Grafana + Winston logging
+- **Testing**: Jest with supertest for API testing
+- **Containerization**: Docker with Docker Compose
+- **Development**: Nodemon with hot reload capabilities
+
+### API Endpoints Structure
+- `/api/auth/*` - Authentication and authorization
+- `/api/users/*` - User management operations
+- `/api/requests/*` - Maintenance request operations
+- `/api/monitoring/*` - System health and metrics
+- `/health` - Basic health check endpoint
+- `/api-docs` - Swagger documentation
+
+### Database Tables
+- Users with role-based permissions
+- Maintenance requests with full lifecycle
+- User sessions for authentication tracking
+- System logs for audit and debugging
+- Metrics and analytics data
