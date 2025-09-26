@@ -1,0 +1,154 @@
+# Requests Handling Feature - Basma Maintenance Management System
+
+## Overview
+Implement a comprehensive requests handling system for the Basma Maintenance Management System with role-based permissions. The system will allow different user roles to interact with maintenance requests according to their specific permissions and responsibilities.
+
+## User Roles and Permissions
+
+### SUPER_ADMIN
+- **Full Access**: Can perform all operations on requests
+- **Capabilities**:
+  - Create, read, update, delete any request
+  - Assign requests to any technician
+  - Update request status to any state
+  - Manage all users and system settings
+  - View all reports and analytics
+  - Access system-wide statistics
+
+### BASMA_ADMIN (Maintenance Admin)
+- **Limited Management**: Can manage requests within their scope but cannot perform maintenance admin tasks
+- **Capabilities**:
+  - View all requests as a viewer (read-only access)
+  - View current/active requests
+  - View reports and statistics
+  - Cannot assign requests to technicians
+  - Cannot manage users
+  - Cannot update request status (this is maintenance admin work)
+  - Cannot perform assignment operations
+
+### TECHNICIAN
+- **Task Execution**: Can work on assigned requests
+- **Capabilities**:
+  - View requests assigned to them
+  - Update status of their assigned requests (IN_PROGRESS, COMPLETED)
+  - Add comments and updates to assigned requests
+  - Cannot assign requests to others
+  - Cannot create new requests (unless they're also a customer)
+
+### CUSTOMER
+- **Request Creation**: Can create and track their own requests
+- **Capabilities**:
+  - Create new maintenance requests
+  - View their own requests
+  - Add comments to their requests
+  - Cannot assign or manage other users' requests
+
+## Core Features
+
+### 1. Request Management System
+- **CRUD Operations**: Complete Create, Read, Update, Delete functionality
+- **Status Lifecycle**: DRAFT → SUBMITTED → ASSIGNED → IN_PROGRESS → COMPLETED → CLOSED
+- **Priority Levels**: LOW, MEDIUM, HIGH, URGENT
+- **Categories**: Plumbing, Electrical, HVAC, Structural, Security, Cleaning, Emergency
+- **Location Tracking**: Building and specific location within building
+
+### 2. Role-Based Access Control
+- **Permission Matrix**: Implement granular permissions based on user roles
+- **Route Protection**: Secure all endpoints with appropriate role checks
+- **Data Filtering**: Return only data that users are authorized to see
+- **Action Validation**: Prevent unauthorized actions at the service layer
+
+### 3. Request Assignment System
+- **Manual Assignment**: SUPER_ADMIN and MAINTENANCE_ADMIN can assign requests
+- **Self-Assignment**: TECHNICIANS can self-assign available requests
+- **Assignment Validation**: Ensure only authorized users can perform assignments
+- **Assignment History**: Track who assigned what to whom and when
+
+### 4. Status Management
+- **Status Transitions**: Enforce valid status transitions based on business rules
+- **Role-Based Updates**: Only authorized roles can update specific statuses
+- **Status History**: Track all status changes with timestamps and user information
+- **Automatic Status Updates**: System can automatically update statuses based on conditions
+
+### 5. Reporting and Analytics
+- **Dashboard Views**: Role-appropriate dashboard data
+- **Request Statistics**: Counts by status, priority, category, time period
+- **Performance Metrics**: Response times, completion rates, technician workload
+- **Export Capabilities**: Generate reports in various formats
+
+### 6. Real-time Updates
+- **WebSocket Integration**: Real-time status updates and notifications
+- **Live Dashboard**: Real-time updates for managers and technicians
+- **Notification System**: Alert users of important status changes
+
+## Technical Requirements
+
+### Database Schema
+- **Existing Models**: Leverage existing `maintenance_request`, `user`, and `request_category` models
+- **Relationships**: Proper foreign key relationships between users and requests
+- **Indexes**: Optimize queries with appropriate database indexes
+- **Constraints**: Enforce data integrity with database constraints
+
+### API Endpoints
+- **RESTful Design**: Follow REST conventions for all endpoints
+- **Pagination**: Implement pagination for list endpoints
+- **Filtering**: Support filtering by status, priority, category, date range
+- **Sorting**: Allow sorting by various fields
+- **Search**: Full-text search capabilities
+
+### Security
+- **Authentication**: JWT-based authentication for all endpoints
+- **Authorization**: Role-based access control on all operations
+- **Input Validation**: Comprehensive input validation using Zod schemas
+- **Rate Limiting**: Prevent abuse with rate limiting
+- **Audit Logging**: Log all important operations for security
+
+### Performance
+- **Caching**: Implement caching for frequently accessed data
+- **Database Optimization**: Optimize queries and use proper indexes
+- **Pagination**: Efficient pagination to handle large datasets
+- **Lazy Loading**: Load related data only when needed
+
+## Implementation Phases
+
+### Phase 1: Core Request Management
+1. Create request service with CRUD operations
+2. Implement request controller with all endpoints
+3. Set up request routes with proper middleware
+4. Add comprehensive input validation
+5. Implement role-based access control
+
+### Phase 2: Assignment System
+1. Create assignment service and logic
+2. Implement assignment endpoints
+3. Add assignment validation and business rules
+4. Create assignment history tracking
+
+### Phase 3: Status Management
+1. Implement status transition validation
+2. Add status update endpoints
+3. Create status history tracking
+4. Implement automatic status updates
+
+### Phase 4: Reporting and Analytics
+1. Create reporting service
+2. Implement dashboard endpoints
+3. Add statistics and metrics calculations
+4. Create export functionality
+
+### Phase 5: Real-time Features
+1. Integrate WebSocket service
+2. Implement real-time notifications
+3. Add live dashboard updates
+4. Create notification system
+
+## Success Criteria
+- All user roles can access appropriate functionality
+- BASMA_ADMIN can view but not manage requests
+- SUPER_ADMIN has full control over the system
+- Request lifecycle is properly managed
+- Assignment system works correctly
+- Real-time updates function properly
+- System is secure and performant
+- Comprehensive test coverage
+- API documentation is complete
