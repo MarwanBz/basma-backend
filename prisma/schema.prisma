@@ -22,8 +22,159 @@ model user {
   image                   String?
   createdAt               DateTime  @default(now())
   updatedAt               DateTime  @updatedAt
+
+  // Relations
+  requestsCreated         maintenance_request[] @relation("RequestCreator")
+  requestsAssigned        maintenance_request[] @relation("RequestAssignee")
+  requestsAssignedBy      maintenance_request[] @relation("RequestAssigner")
+  commentsCreated         request_comment[] @relation("CommentCreator")
+  statusChangesMade       request_status_history[] @relation("StatusChanger")
+  assignmentsMade         request_assignment_history[] @relation("AssignmentChanger")
+  previousAssignments     request_assignment_history[] @relation("PreviousAssignee")
+  newAssignments          request_assignment_history[] @relation("NewAssignee")
+
+  @@map("users")
 }
 
+// Request Category model
+model request_category {
+  id          Int                   @id @default(autoincrement())
+  name        String                @db.VarChar(50)
+  description String?               @db.VarChar(255)
+  isActive    Boolean               @default(true)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  // Relations
+  requests    maintenance_request[]
+
+  @@map("request_categories")
+  @@index([name])
+  @@index([isActive])
+}
+
+// Maintenance Request model
+model maintenance_request {
+  id               String           @id @default(uuid())
+  title            String           @db.VarChar(200)
+  description      String           @db.Text
+  priority         request_priority @default(MEDIUM)
+  status           request_status   @default(SUBMITTED)
+  categoryId       Int
+  location         String           @db.VarChar(100)
+  
+  // Enhanced location structure
+  building         String?          @db.VarChar(100)
+  specificLocation String?          @db.VarChar(200)
+  
+  // User relationships
+  requestedById    String           // Foreign key to user
+  assignedToId     String?          // Foreign key to user (nullable)
+  assignedById     String?          // Foreign key to user who assigned the request
+  
+  // Cost and timing
+  estimatedCost    Decimal?         @db.Decimal(10,2)
+  actualCost       Decimal?         @db.Decimal(10,2)
+  scheduledDate    DateTime?
+  completedDate    DateTime?
+  
+  // Timestamps
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  // Relations
+  category         request_category @relation(fields: [categoryId], references: [id])
+  requestedBy      user             @relation("RequestCreator", fields: [requestedById], references: [id])
+  assignedTo       user?            @relation("RequestAssignee", fields: [assignedToId], references: [id])
+  assignedBy       user?            @relation("RequestAssigner", fields: [assignedById], references: [id])
+  comments         request_comment[]
+  statusHistory    request_status_history[]
+  assignmentHistory request_assignment_history[]
+
+  @@map("maintenance_requests")
+  @@index([status])
+  @@index([priority])
+  @@index([categoryId])
+  @@index([requestedById])
+  @@index([assignedToId])
+  @@index([assignedById])
+  @@index([createdAt])
+  @@index([scheduledDate])
+  @@index([building])
+}
+
+// Request Comment model
+model request_comment {
+  id               String           @id @default(uuid())
+  text             String           @db.Text
+  isInternal       Boolean          @default(false) // Internal comments vs customer-visible
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  
+  // User relationships
+  userId           String           // Foreign key to user who made the comment
+  requestId        String           // Foreign key to maintenance request
+  
+  // Relations
+  user             user             @relation("CommentCreator", fields: [userId], references: [id])
+  request          maintenance_request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@map("request_comments")
+  @@index([requestId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// Request Status History model
+model request_status_history {
+  id               String           @id @default(uuid())
+  fromStatus       request_status?  // Previous status (null for initial status)
+  toStatus         request_status   // New status
+  reason           String?          @db.VarChar(500) // Optional reason for status change
+  createdAt        DateTime         @default(now())
+  
+  // User relationships
+  changedById      String?          // Foreign key to user who made the change (nullable for existing records)
+  requestId        String           // Foreign key to maintenance request
+  
+  // Relations
+  changedBy        user?            @relation("StatusChanger", fields: [changedById], references: [id])
+  request          maintenance_request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@map("request_status_history")
+  @@index([requestId])
+  @@index([changedById])
+  @@index([createdAt])
+}
+
+// Request Assignment History model
+model request_assignment_history {
+  id               String           @id @default(uuid())
+  fromTechnicianId String?          // Previous technician (null for initial assignment)
+  toTechnicianId   String?          // New technician (null for unassignment)
+  assignmentType   assignment_type  // Type of assignment change
+  reason           String?          @db.VarChar(500) // Optional reason for assignment change
+  createdAt        DateTime         @default(now())
+  
+  // User relationships
+  assignedById     String           // Foreign key to user who made the assignment
+  requestId        String           // Foreign key to maintenance request
+  
+  // Relations
+  assignedBy       user             @relation("AssignmentChanger", fields: [assignedById], references: [id])
+  fromTechnician   user?            @relation("PreviousAssignee", fields: [fromTechnicianId], references: [id])
+  toTechnician     user?            @relation("NewAssignee", fields: [toTechnicianId], references: [id])
+  request          maintenance_request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@map("request_assignment_history")
+  @@index([requestId])
+  @@index([assignedById])
+  @@index([fromTechnicianId])
+  @@index([toTechnicianId])
+  @@index([createdAt])
+}
+
+// Enums
 enum user_role {
   SUPER_ADMIN
   MAINTENANCE_ADMIN
@@ -32,4 +183,28 @@ enum user_role {
   CUSTOMER
   ADMIN // Keep existing ADMIN role
   USER // Keep for backward compatibility
+}
+
+enum request_status {
+  DRAFT
+  SUBMITTED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CLOSED
+  REJECTED
+}
+
+enum request_priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum assignment_type {
+  INITIAL_ASSIGNMENT
+  REASSIGNMENT
+  SELF_ASSIGNMENT
+  UNASSIGNMENT
 }
