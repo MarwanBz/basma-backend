@@ -1,39 +1,43 @@
 # Request Categories Reference
 
 ## Overview
+
 This document lists all available maintenance request categories in the Basma system. These categories are seeded in Arabic and ready to use.
 
 ## Available Categories
 
-| ID | Name (Arabic) | Description (Arabic) | English Translation |
-|----|---------------|---------------------|---------------------|
-| 1 | سباكة | تسريبات المياه، انسدادات، إصلاح الصنابير والمراحيض | Plumbing - Water leaks, clogs, faucet and toilet repairs |
-| 2 | كهرباء | مشاكل الكهرباء، الإضاءة، المفاتيح والمقابس | Electrical - Power issues, lighting, switches and outlets |
-| 3 | تكييف وتدفئة | صيانة وإصلاح أنظمة التكييف والتدفئة والتهوية | HVAC - Maintenance and repair of air conditioning, heating and ventilation systems |
-| 4 | أعمال إنشائية | إصلاح الجدران، الأرضيات، الأسقف، الدهانات | Construction - Wall, floor, ceiling, and painting repairs |
-| 5 | نجارة | إصلاح الأبواب، النوافذ، الخزائن، الأثاث الخشبي | Carpentry - Door, window, cabinet, and wooden furniture repairs |
-| 6 | أمن وسلامة | الأقفال، أنظمة الإنذار، كاميرات المراقبة، أنظمة الدخول | Security - Locks, alarms, surveillance cameras, access systems |
-| 7 | نظافة | التنظيف العام، التنظيف العميق، إزالة القمامة | Cleaning - General cleaning, deep cleaning, garbage removal |
-| 8 | مصاعد | صيانة وإصلاح المصاعد وأنظمة الحركة | Elevators - Elevator and movement system maintenance and repair |
-| 9 | حدائق | صيانة الحدائق، قص العشب، تشذيب الأشجار | Gardens - Garden maintenance, lawn mowing, tree trimming |
-| 10 | تسربات | كشف وإصلاح تسربات المياه والرطوبة | Leaks - Detection and repair of water leaks and moisture |
-| 11 | زجاج ونوافذ | إصلاح واستبدال الزجاج والنوافذ | Glass & Windows - Glass and window repair and replacement |
-| 12 | طوارئ | حالات الطوارئ التي تتطلب اهتماماً فورياً | Emergency - Emergency situations requiring immediate attention |
-| 13 | أخرى | طلبات صيانة أخرى غير مصنفة | Other - Other unclassified maintenance requests |
+| ID  | Name (Arabic) | Description (Arabic)                                   | English Translation                                                                |
+| --- | ------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| 1   | سباكة         | تسريبات المياه، انسدادات، إصلاح الصنابير والمراحيض     | Plumbing - Water leaks, clogs, faucet and toilet repairs                           |
+| 2   | كهرباء        | مشاكل الكهرباء، الإضاءة، المفاتيح والمقابس             | Electrical - Power issues, lighting, switches and outlets                          |
+| 3   | تكييف وتدفئة  | صيانة وإصلاح أنظمة التكييف والتدفئة والتهوية           | HVAC - Maintenance and repair of air conditioning, heating and ventilation systems |
+| 4   | أعمال إنشائية | إصلاح الجدران، الأرضيات، الأسقف، الدهانات              | Construction - Wall, floor, ceiling, and painting repairs                          |
+| 5   | نجارة         | إصلاح الأبواب، النوافذ، الخزائن، الأثاث الخشبي         | Carpentry - Door, window, cabinet, and wooden furniture repairs                    |
+| 6   | أمن وسلامة    | الأقفال، أنظمة الإنذار، كاميرات المراقبة، أنظمة الدخول | Security - Locks, alarms, surveillance cameras, access systems                     |
+| 7   | نظافة         | التنظيف العام، التنظيف العميق، إزالة القمامة           | Cleaning - General cleaning, deep cleaning, garbage removal                        |
+| 8   | مصاعد         | صيانة وإصلاح المصاعد وأنظمة الحركة                     | Elevators - Elevator and movement system maintenance and repair                    |
+| 9   | حدائق         | صيانة الحدائق، قص العشب، تشذيب الأشجار                 | Gardens - Garden maintenance, lawn mowing, tree trimming                           |
+| 10  | تسربات        | كشف وإصلاح تسربات المياه والرطوبة                      | Leaks - Detection and repair of water leaks and moisture                           |
+| 11  | زجاج ونوافذ   | إصلاح واستبدال الزجاج والنوافذ                         | Glass & Windows - Glass and window repair and replacement                          |
+| 12  | طوارئ         | حالات الطوارئ التي تتطلب اهتماماً فورياً               | Emergency - Emergency situations requiring immediate attention                     |
+| 13  | أخرى          | طلبات صيانة أخرى غير مصنفة                             | Other - Other unclassified maintenance requests                                    |
 
 ## API Usage
 
 ### Get All Categories
+
 ```http
 GET /api/request-categories
 ```
 
 ### Get Category by ID
+
 ```http
 GET /api/request-categories/:id
 ```
 
 ### Create Request with Category
+
 ```json
 POST /api/requests
 {
@@ -50,6 +54,7 @@ POST /api/requests
 ## Frontend Implementation
 
 ### Category Dropdown Example (React)
+
 ```typescript
 interface Category {
   id: number;
@@ -77,6 +82,7 @@ interface Category {
 ```
 
 ### TypeScript Interface
+
 ```typescript
 export interface RequestCategory {
   id: number;
@@ -92,21 +98,21 @@ export interface RequestCategory {
 
 For better UX, consider using these icons:
 
-| Category | Suggested Icon |
-|----------|---------------|
-| سباكة | 🔧 wrench / 💧 droplet |
-| كهرباء | ⚡ zap / 💡 lightbulb |
-| تكييف وتدفئة | ❄️ snowflake / 🔥 fire |
+| Category      | Suggested Icon              |
+| ------------- | --------------------------- |
+| سباكة         | 🔧 wrench / 💧 droplet      |
+| كهرباء        | ⚡ zap / 💡 lightbulb       |
+| تكييف وتدفئة  | ❄️ snowflake / 🔥 fire      |
 | أعمال إنشائية | 🏗️ construction / 🔨 hammer |
-| نجارة | 🪚 carpentry / 🪵 wood |
-| أمن وسلامة | 🔒 lock / 🛡️ shield |
-| نظافة | 🧹 broom / 🧼 soap |
-| مصاعد | 🛗 elevator |
-| حدائق | 🌳 tree / 🌱 plant |
-| تسربات | 💦 water / 🚰 tap |
-| زجاج ونوافذ | 🪟 window |
-| طوارئ | 🚨 emergency / ⚠️ warning |
-| أخرى | 📋 clipboard / ⚙️ gear |
+| نجارة         | 🪚 carpentry / 🪵 wood      |
+| أمن وسلامة    | 🔒 lock / 🛡️ shield         |
+| نظافة         | 🧹 broom / 🧼 soap          |
+| مصاعد         | 🛗 elevator                 |
+| حدائق         | 🌳 tree / 🌱 plant          |
+| تسربات        | 💦 water / 🚰 tap           |
+| زجاج ونوافذ   | 🪟 window                   |
+| طوارئ         | 🚨 emergency / ⚠️ warning   |
+| أخرى          | 📋 clipboard / ⚙️ gear      |
 
 ## Re-seeding Categories
 
@@ -143,23 +149,28 @@ model request_category {
 ## Common Use Cases
 
 ### Emergency Requests
+
 Use `categoryId: 12` for urgent issues that need immediate attention.
 
 ### Water-Related Issues
+
 - Use `categoryId: 1` (سباكة) for plumbing issues
 - Use `categoryId: 10` (تسربات) specifically for leak detection
 
 ### Building Maintenance
+
 - Use `categoryId: 4` (أعمال إنشائية) for structural work
 - Use `categoryId: 5` (نجارة) for carpentry work
 
 ### System Maintenance
+
 - Use `categoryId: 8` (مصاعد) for elevator issues
 - Use `categoryId: 6` (أمن وسلامة) for security systems
 
 ## Frontend Filtering
 
 Categories can be used for:
+
 - Request creation forms (dropdown)
 - Request filtering (show only plumbing requests)
 - Dashboard statistics (requests by category)
@@ -180,4 +191,3 @@ Categories can be used for:
 **Last Updated**: October 12, 2025  
 **Total Categories**: 13  
 **Language**: Arabic (العربية)
-
