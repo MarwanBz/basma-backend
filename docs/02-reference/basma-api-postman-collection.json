@@ -23,7 +23,62 @@
     {
       "key": "access_token",
       "value": "",
-      "type": "string"
+      "type": "string",
+      "description": "Primary access token for general operations"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string",
+      "description": "SUPER_ADMIN token for administrative operations"
+    },
+    {
+      "key": "technician_token",
+      "value": "",
+      "type": "string",
+      "description": "TECHNICIAN token for technician operations"
+    },
+    {
+      "key": "customer_token",
+      "value": "",
+      "type": "string",
+      "description": "CUSTOMER token for customer operations"
+    },
+    {
+      "key": "basma_admin_token",
+      "value": "",
+      "type": "string",
+      "description": "BASMA_ADMIN token for building admin operations"
+    },
+    {
+      "key": "my_user_id",
+      "value": "",
+      "type": "string",
+      "description": "Current user ID for filtering operations"
+    },
+    {
+      "key": "technician_user_id",
+      "value": "",
+      "type": "string",
+      "description": "Technician user ID for assignment operations"
+    },
+    {
+      "key": "created_request_id",
+      "value": "",
+      "type": "string",
+      "description": "ID of created request for subsequent operations"
+    },
+    {
+      "key": "comment_id",
+      "value": "",
+      "type": "string",
+      "description": "ID of created comment"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string",
+      "description": "Refresh token for token renewal"
     }
   ],
   "item": [
@@ -73,10 +128,47 @@
               "listen": "test",
               "script": {
                 "exec": [
+                  "// Enhanced token management with role-based storage",
                   "if (pm.response.code === 200) {",
                   "    const response = pm.response.json();",
-                  "    pm.environment.set('access_token', response.data.access_token);",
-                  "    console.log('Token saved:', response.data.access_token);",
+                  "    const token = response.data.accessToken;",
+                  "    const refreshToken = response.data.refreshToken;",
+                  "    const user = response.data.user;",
+                  "",
+                  "    // Store tokens based on user role",
+                  "    if (user.role === 'SUPER_ADMIN') {",
+                  "        pm.environment.set('admin_token', token);",
+                  "        pm.environment.set('access_token', token);",
+                  "        pm.environment.set('my_user_id', user.id);",
+                  "    } else if (user.role === 'TECHNICIAN') {",
+                  "        pm.environment.set('technician_token', token);",
+                  "        pm.environment.set('access_token', token);",
+                  "        pm.environment.set('my_user_id', user.id);",
+                  "        pm.environment.set('technician_user_id', user.id);",
+                  "    } else if (user.role === 'CUSTOMER') {",
+                  "        pm.environment.set('customer_token', token);",
+                  "        pm.environment.set('access_token', token);",
+                  "        pm.environment.set('my_user_id', user.id);",
+                  "    } else if (user.role === 'BASMA_ADMIN') {",
+                  "        pm.environment.set('basma_admin_token', token);",
+                  "        pm.environment.set('access_token', token);",
+                  "        pm.environment.set('my_user_id', user.id);",
+                  "    }",
+                  "",
+                  "    // Store refresh token",
+                  "    if (refreshToken) {",
+                  "        pm.environment.set('refresh_token', refreshToken);",
+                  "    }",
+                  "",
+                  "    console.log('✅ Token saved for role:', user.role);",
+                  "    console.log('👤 User ID:', user.id);",
+                  "    console.log('🔑 Token:', token.substring(0, 20) + '...');",
+                  "}",
+                  "",
+                  "// Handle token expiration",
+                  "if (pm.response.code === 401) {",
+                  "    console.log('❌ Token expired - please login again');",
+                  "    pm.environment.set('access_token', '');",
                   "}"
                 ]
               }
@@ -133,6 +225,48 @@
         },
         {
           "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Handle token refresh",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    const newToken = response.data.accessToken;",
+                  "    const newRefreshToken = response.data.refreshToken;",
+                  "",
+                  "    // Update the appropriate token based on current role",
+                  "    const currentToken = pm.environment.get('access_token');",
+                  "",
+                  "    if (currentToken === pm.environment.get('admin_token')) {",
+                  "        pm.environment.set('admin_token', newToken);",
+                  "    } else if (currentToken === pm.environment.get('technician_token')) {",
+                  "        pm.environment.set('technician_token', newToken);",
+                  "    } else if (currentToken === pm.environment.get('customer_token')) {",
+                  "        pm.environment.set('customer_token', newToken);",
+                  "    } else if (currentToken === pm.environment.get('basma_admin_token')) {",
+                  "        pm.environment.set('basma_admin_token', newToken);",
+                  "    }",
+                  "",
+                  "    pm.environment.set('access_token', newToken);",
+                  "    if (newRefreshToken) {",
+                  "        pm.environment.set('refresh_token', newRefreshToken);",
+                  "    }",
+                  "",
+                  "    console.log('✅ Token refreshed successfully');",
+                  "    console.log('🔑 New token:', newToken.substring(0, 20) + '...');",
+                  "}",
+                  "",
+                  "if (pm.response.code === 401) {",
+                  "    console.log('❌ Refresh token expired - please login again');",
+                  "    pm.environment.set('access_token', '');",
+                  "    pm.environment.set('refresh_token', '');",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "url": "{{base_url}}/api/auth/refresh",
@@ -144,7 +278,45 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"refreshToken\": \"refresh-token-here\"\n}"
+              "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Clear All Tokens",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Clear all stored tokens",
+                  "pm.environment.set('access_token', '');",
+                  "pm.environment.set('admin_token', '');",
+                  "pm.environment.set('technician_token', '');",
+                  "pm.environment.set('customer_token', '');",
+                  "pm.environment.set('basma_admin_token', '');",
+                  "pm.environment.set('refresh_token', '');",
+                  "pm.environment.set('my_user_id', '');",
+                  "pm.environment.set('technician_user_id', '');",
+                  "pm.environment.set('created_request_id', '');",
+                  "pm.environment.set('comment_id', '');",
+                  "",
+                  "console.log('✅ All tokens cleared');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/auth/logout",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}"
+                }
+              ]
             }
           }
         }
@@ -471,6 +643,429 @@
             "method": "GET",
             "url": "{{base_url}}/api/monitoring/metrics"
           }
+        }
+      ]
+    },
+    {
+      "name": "📋 Request Management",
+      "description": "Complete maintenance request lifecycle management with role-based access control",
+      "item": [
+        {
+          "name": "📝 Request Operations",
+          "item": [
+            {
+              "name": "Create Request (Customer/Technician)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('created_request_id', response.data.id);",
+                      "    console.log('Request created with ID:', response.data.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "url": "{{base_url}}/api/requests",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Fix broken door in Building A\",\n  \"description\": \"The main entrance door to Building A is not closing properly. It appears to be an issue with the door mechanism.\",\n  \"priority\": \"MEDIUM\",\n  \"categoryId\": 1,\n  \"location\": \"Main Entrance\",\n  \"building\": \"Building A\",\n  \"specificLocation\": \"Ground Floor, North Wing\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Get All Requests (Admin/Technician)",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/api/requests",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get My Requests (Customer)",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/api/requests?requestedById={{my_user_id}}",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Get Request by ID",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/api/requests/{{created_request_id}}",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Update Request",
+              "request": {
+                "method": "PUT",
+                "url": "{{base_url}}/api/requests/{{created_request_id}}",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Fix broken door - Updated\",\n  \"description\": \"The main entrance door to Building A is not closing properly. Updated description with more details.\",\n  \"priority\": \"HIGH\",\n  \"estimatedCost\": 250.00\n}"
+                }
+              }
+            },
+            {
+              "name": "Delete Request (Admin/Creator)",
+              "request": {
+                "method": "DELETE",
+                "url": "{{base_url}}/api/requests/{{created_request_id}}",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "💬 Comments",
+          "item": [
+            {
+              "name": "Add Comment to Request",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 201) {",
+                      "    const response = pm.response.json();",
+                      "    pm.environment.set('comment_id', response.data.id);",
+                      "    console.log('Comment created with ID:', response.data.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "url": "{{base_url}}/api/requests/{{created_request_id}}/comments",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"text\": \"I've inspected the door and found that the hinges need replacement. This is a structural issue.\",\n  \"isInternal\": false\n}"
+                }
+              }
+            },
+            {
+              "name": "Add Internal Comment (Technician)",
+              "request": {
+                "method": "POST",
+                "url": "{{base_url}}/api/requests/{{created_request_id}}/comments",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{technician_token}}"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"text\": \"This requires specialized tools. Need to order replacement hinges from supplier.\",\n  \"isInternal\": true\n}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "📊 Status Management",
+          "item": [
+            {
+              "name": "Update Request Status (Technician)",
+              "request": {
+                "method": "PATCH",
+                "url": "{{base_url}}/api/requests/{{created_request_id}}/status",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{technician_token}}"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"reason\": \"Starting work on the door repair\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Complete Request (Technician)",
+              "request": {
+                "method": "PATCH",
+                "url": "{{base_url}}/api/requests/{{created_request_id}}/status",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{technician_token}}"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"COMPLETED\",\n  \"reason\": \"Door repair completed successfully\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Close Request (Admin)",
+              "request": {
+                "method": "PATCH",
+                "url": "{{base_url}}/api/requests/{{created_request_id}}/status",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"CLOSED\",\n  \"reason\": \"Work verified and completed\"\n}"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "👷 Assignment Management",
+          "item": [
+            {
+              "name": "Assign Request (Admin)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {",
+                      "    console.log('Request assigned successfully');",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "url": "{{base_url}}/api/requests/{{created_request_id}}/assign",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}"
+                    }
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"assignedToId\": \"{{technician_user_id}}\",\n  \"reason\": \"Assigning to experienced technician for door repair\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Self-Assign Request (Technician)",
+              "request": {
+                "method": "POST",
+                "url": "{{base_url}}/api/requests/{{created_request_id}}/self-assign",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{technician_token}}"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔍 Advanced Filtering",
+          "item": [
+            {
+              "name": "Filter by Status",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/api/requests?status=SUBMITTED&sortBy=createdAt&sortOrder=desc",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Filter by Priority",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/api/requests?priority=HIGH&building=Building%20A",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Search Requests",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/api/requests?search=door&limit=5",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Pagination Example",
+              "request": {
+                "method": "GET",
+                "url": "{{base_url}}/api/requests?page=2&limit=10&sortBy=priority&sortOrder=desc",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access_token}}"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
         }
       ]
     },
