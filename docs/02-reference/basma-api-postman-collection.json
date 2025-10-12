@@ -119,7 +119,144 @@
               "mode": "raw",
               "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"Test123!\"\n}"
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Successful Registration",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/register",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"User registered successfully\",\n  \"data\": {\n    \"user\": {\n      \"id\": \"usr_123456789\",\n      \"name\": \"John Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"role\": \"CUSTOMER\",\n      \"emailVerified\": false,\n      \"createdAt\": \"2025-10-12T10:30:00.000Z\"\n    },\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n  }\n}"
+            },
+            {
+              "name": "Email Already Exists",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/register",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"superadmin@basma.com\",\n  \"password\": \"SecurePass123!\"\n}"
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"User with this email already exists\",\n  \"error\": {\n    \"code\": \"USER_EXISTS\",\n    \"details\": \"A user with the email 'superadmin@basma.com' is already registered\"\n  }\n}"
+            },
+            {
+              "name": "Invalid Email Format",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/register",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"invalid-email\",\n  \"password\": \"SecurePass123!\"\n}"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"errors\": [\n    {\n      \"field\": \"email\",\n      \"message\": \"Invalid email format\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "Weak Password",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/register",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"weak\"\n}"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"errors\": [\n    {\n      \"field\": \"password\",\n      \"message\": \"Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "Missing Required Fields",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/register",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"john.doe@example.com\"\n}"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"errors\": [\n    {\n      \"field\": \"name\",\n      \"message\": \"Name is required\"\n    },\n    {\n      \"field\": \"password\",\n      \"message\": \"Password is required\"\n    }\n  ]\n}"
+            }
+          ]
         },
         {
           "name": "Login",
@@ -187,7 +324,198 @@
               "mode": "raw",
               "raw": "{\n  \"email\": \"superadmin@basma.com\",\n  \"password\": \"SuperAdmin123!\"\n}"
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Login as Super Admin",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/login",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"superadmin@basma.com\",\n  \"password\": \"SuperAdmin123!\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"data\": {\n    \"user\": {\n      \"id\": \"usr_superadmin\",\n      \"name\": \"Super Admin\",\n      \"email\": \"superadmin@basma.com\",\n      \"role\": \"SUPER_ADMIN\",\n      \"emailVerified\": true,\n      \"createdAt\": \"2025-01-10T00:00:00.000Z\"\n    },\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c3Jfc3VwZXJhZG1pbiIsInJvbGUiOiJTVVBFUl9BRE1JTiIsImlhdCI6MTczOTM2NjQwMCwiZXhwIjoxNzM5MzcwMDAwfQ...\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c3Jfc3VwZXJhZG1pbiIsImlhdCI6MTczOTM2NjQwMCwiZXhwIjoxNzM5OTcxMjAwfQ...\"\n  }\n}"
+            },
+            {
+              "name": "Login as Technician",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/login",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"technician@example.com\",\n  \"password\": \"Tech123!\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"data\": {\n    \"user\": {\n      \"id\": \"usr_tech001\",\n      \"name\": \"Ahmed Hassan\",\n      \"email\": \"technician@example.com\",\n      \"role\": \"TECHNICIAN\",\n      \"emailVerified\": true,\n      \"phoneNumber\": \"+201234567890\",\n      \"createdAt\": \"2025-03-15T00:00:00.000Z\"\n    },\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c3JfdGVjaDAwMSIsInJvbGUiOiJURUNITklDSUFOIiwiaWF0IjoxNzM5MzY2NDAwLCJleHAiOjE3MzkzNzAwMDB9...\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c3JfdGVjaDAwMSIsImlhdCI6MTczOTM2NjQwMCwiZXhwIjoxNzM5OTcxMjAwfQ...\"\n  }\n}"
+            },
+            {
+              "name": "Login as Customer",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/login",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"Customer123!\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"data\": {\n    \"user\": {\n      \"id\": \"usr_cust001\",\n      \"name\": \"Sarah Ahmed\",\n      \"email\": \"customer@example.com\",\n      \"role\": \"CUSTOMER\",\n      \"emailVerified\": true,\n      \"phoneNumber\": \"+201098765432\",\n      \"building\": \"Building A\",\n      \"apartmentNumber\": \"501\",\n      \"createdAt\": \"2025-05-20T00:00:00.000Z\"\n    },\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c3JfY3VzdDAwMSIsInJvbGUiOiJDVVNUT01FUiIsImlhdCI6MTczOTM2NjQwMCwiZXhwIjoxNzM5MzcwMDAwfQ...\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c3JfY3VzdDAwMSIsImlhdCI6MTczOTM2NjQwMCwiZXhwIjoxNzM5OTcxMjAwfQ...\"\n  }\n}"
+            },
+            {
+              "name": "Login as Basma Admin",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/login",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"admin@buildingA.basma.com\",\n  \"password\": \"BuildingAdmin123!\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"data\": {\n    \"user\": {\n      \"id\": \"usr_badmin001\",\n      \"name\": \"Mohamed Ali\",\n      \"email\": \"admin@buildingA.basma.com\",\n      \"role\": \"BASMA_ADMIN\",\n      \"emailVerified\": true,\n      \"building\": \"Building A\",\n      \"phoneNumber\": \"+201111222333\",\n      \"createdAt\": \"2025-02-10T00:00:00.000Z\"\n    },\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c3JfYmFkbWluMDAxIiwicm9sZSI6IkJBU01BX0FETUlOIiwiaWF0IjoxNzM5MzY2NDAwLCJleHAiOjE3MzkzNzAwMDB9...\",\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c3JfYmFkbWluMDAxIiwiaWF0IjoxNzM5MzY2NDAwLCJleHAiOjE3Mzk5NzEyMDB9...\"\n  }\n}"
+            },
+            {
+              "name": "Invalid Credentials",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/login",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"WrongPassword123!\"\n}"
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Invalid email or password\",\n  \"error\": {\n    \"code\": \"INVALID_CREDENTIALS\",\n    \"details\": \"The email or password you entered is incorrect\"\n  }\n}"
+            },
+            {
+              "name": "User Not Found",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/login",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"nonexistent@example.com\",\n  \"password\": \"SomePassword123!\"\n}"
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Invalid email or password\",\n  \"error\": {\n    \"code\": \"INVALID_CREDENTIALS\",\n    \"details\": \"The email or password you entered is incorrect\"\n  }\n}"
+            },
+            {
+              "name": "Missing Required Fields",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/login",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\"\n}"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"errors\": [\n    {\n      \"field\": \"password\",\n      \"message\": \"Password is required\"\n    }\n  ]\n}"
+            }
+          ]
         },
         {
           "name": "Forgot Password",
@@ -204,7 +532,90 @@
               "mode": "raw",
               "raw": "{\n  \"email\": \"test@example.com\"\n}"
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Password Reset Email Sent",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/forgot-password",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Password reset instructions have been sent to your email\",\n  \"data\": {\n    \"email\": \"user@example.com\",\n    \"expiresIn\": \"1 hour\"\n  }\n}"
+            },
+            {
+              "name": "User Not Found",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/forgot-password",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"nonexistent@example.com\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Password reset instructions have been sent to your email\",\n  \"data\": {\n    \"email\": \"nonexistent@example.com\",\n    \"expiresIn\": \"1 hour\"\n  }\n}"
+            },
+            {
+              "name": "Invalid Email Format",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/forgot-password",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"invalid-email\"\n}"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"errors\": [\n    {\n      \"field\": \"email\",\n      \"message\": \"Invalid email format\"\n    }\n  ]\n}"
+            }
+          ]
         },
         {
           "name": "Reset Password",
@@ -221,7 +632,90 @@
               "mode": "raw",
               "raw": "{\n  \"token\": \"reset-token-here\",\n  \"newPassword\": \"NewPassword123!\"\n}"
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Password Reset Successful",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/reset-password",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"valid-reset-token-abc123\",\n  \"newPassword\": \"NewSecurePass123!\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Password has been reset successfully. You can now login with your new password.\",\n  \"data\": {\n    \"email\": \"user@example.com\"\n  }\n}"
+            },
+            {
+              "name": "Invalid or Expired Token",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/reset-password",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"expired-or-invalid-token\",\n  \"newPassword\": \"NewSecurePass123!\"\n}"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Invalid or expired reset token\",\n  \"error\": {\n    \"code\": \"INVALID_TOKEN\",\n    \"details\": \"The password reset link has expired or is invalid. Please request a new one.\"\n  }\n}"
+            },
+            {
+              "name": "Weak New Password",
+              "originalRequest": {
+                "method": "POST",
+                "url": "{{base_url}}/api/auth/reset-password",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"valid-reset-token-abc123\",\n  \"newPassword\": \"weak\"\n}"
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"errors\": [\n    {\n      \"field\": \"newPassword\",\n      \"message\": \"Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character\"\n    }\n  ]\n}"
+            }
+          ]
         },
         {
           "name": "Refresh Token",
@@ -389,7 +883,61 @@
                     }
                   ]
                 }
-              }
+              },
+              "response": [
+                {
+                  "name": "Success - System Statistics",
+                  "originalRequest": {
+                    "method": "GET",
+                    "url": "{{base_url}}/api/super-admin/system/stats",
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": [
+                        {
+                          "key": "token",
+                          "value": "{{admin_token}}"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "body": "{\n  \"success\": true,\n  \"data\": {\n    \"users\": {\n      \"total\": 156,\n      \"byRole\": {\n        \"SUPER_ADMIN\": 1,\n        \"BASMA_ADMIN\": 5,\n        \"TECHNICIAN\": 25,\n        \"CUSTOMER\": 125\n      },\n      \"active\": 142,\n      \"newThisMonth\": 12\n    },\n    \"requests\": {\n      \"total\": 487,\n      \"byStatus\": {\n        \"SUBMITTED\": 23,\n        \"ASSIGNED\": 45,\n        \"IN_PROGRESS\": 38,\n        \"COMPLETED\": 342,\n        \"CLOSED\": 39\n      },\n      \"byPriority\": {\n        \"LOW\": 120,\n        \"MEDIUM\": 245,\n        \"HIGH\": 98,\n        \"URGENT\": 24\n      },\n      \"newThisWeek\": 34,\n      \"completedThisWeek\": 41\n    },\n    \"performance\": {\n      \"averageResponseTime\": \"2.5 hours\",\n      \"averageCompletionTime\": \"18 hours\",\n      \"customerSatisfaction\": 4.3\n    },\n    \"system\": {\n      \"uptime\": \"99.8%\",\n      \"apiVersion\": \"1.0.0\",\n      \"lastBackup\": \"2025-10-12T02:00:00.000Z\"\n    }\n  }\n}"
+                },
+                {
+                  "name": "Unauthorized - Not Super Admin",
+                  "originalRequest": {
+                    "method": "GET",
+                    "url": "{{base_url}}/api/super-admin/system/stats",
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": [
+                        {
+                          "key": "token",
+                          "value": "{{customer_token}}"
+                        }
+                      ]
+                    }
+                  },
+                  "status": "Forbidden",
+                  "code": 403,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "body": "{\n  \"success\": false,\n  \"message\": \"Access denied\",\n  \"error\": {\n    \"code\": \"INSUFFICIENT_PERMISSIONS\",\n    \"details\": \"You do not have permission to access this resource. Super Admin role required.\"\n  }\n}"
+                }
+              ]
             }
           ]
         },
@@ -691,7 +1239,160 @@
                   "mode": "raw",
                   "raw": "{\n  \"title\": \"Fix broken door in Building A\",\n  \"description\": \"The main entrance door to Building A is not closing properly. It appears to be an issue with the door mechanism.\",\n  \"priority\": \"MEDIUM\",\n  \"categoryId\": 1,\n  \"location\": \"Main Entrance\",\n  \"building\": \"Building A\",\n  \"specificLocation\": \"Ground Floor, North Wing\"\n}"
                 }
-              }
+              },
+              "response": [
+                {
+                  "name": "Request Created by Customer",
+                  "originalRequest": {
+                    "method": "POST",
+                    "url": "{{base_url}}/api/requests",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Authorization",
+                        "value": "Bearer {{customer_token}}"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"title\": \"Fix broken door in Building A\",\n  \"description\": \"The main entrance door to Building A is not closing properly. It appears to be an issue with the door mechanism.\",\n  \"priority\": \"MEDIUM\",\n  \"categoryId\": 1,\n  \"location\": \"Main Entrance\",\n  \"building\": \"Building A\",\n  \"specificLocation\": \"Ground Floor, North Wing\"\n}"
+                    }
+                  },
+                  "status": "Created",
+                  "code": 201,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "body": "{\n  \"success\": true,\n  \"message\": \"Request created successfully\",\n  \"data\": {\n    \"id\": \"req_001\",\n    \"title\": \"Fix broken door in Building A\",\n    \"description\": \"The main entrance door to Building A is not closing properly. It appears to be an issue with the door mechanism.\",\n    \"status\": \"SUBMITTED\",\n    \"priority\": \"MEDIUM\",\n    \"categoryId\": 1,\n    \"location\": \"Main Entrance\",\n    \"building\": \"Building A\",\n    \"specificLocation\": \"Ground Floor, North Wing\",\n    \"requestedBy\": {\n      \"id\": \"usr_cust001\",\n      \"name\": \"Sarah Ahmed\",\n      \"email\": \"customer@example.com\",\n      \"role\": \"CUSTOMER\"\n    },\n    \"createdAt\": \"2025-10-12T10:30:00.000Z\",\n    \"updatedAt\": \"2025-10-12T10:30:00.000Z\"\n  }\n}"
+                },
+                {
+                  "name": "High Priority Request by Technician",
+                  "originalRequest": {
+                    "method": "POST",
+                    "url": "{{base_url}}/api/requests",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Authorization",
+                        "value": "Bearer {{technician_token}}"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"title\": \"Emergency - Water leak in apartment 302\",\n  \"description\": \"Severe water leak from ceiling in apartment 302. Requires immediate attention to prevent damage.\",\n  \"priority\": \"HIGH\",\n  \"categoryId\": 2,\n  \"location\": \"Apartment 302\",\n  \"building\": \"Building B\",\n  \"specificLocation\": \"Living room ceiling\"\n}"
+                    }
+                  },
+                  "status": "Created",
+                  "code": 201,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "body": "{\n  \"success\": true,\n  \"message\": \"Request created successfully\",\n  \"data\": {\n    \"id\": \"req_002\",\n    \"title\": \"Emergency - Water leak in apartment 302\",\n    \"description\": \"Severe water leak from ceiling in apartment 302. Requires immediate attention to prevent damage.\",\n    \"status\": \"SUBMITTED\",\n    \"priority\": \"HIGH\",\n    \"categoryId\": 2,\n    \"location\": \"Apartment 302\",\n    \"building\": \"Building B\",\n    \"specificLocation\": \"Living room ceiling\",\n    \"requestedBy\": {\n      \"id\": \"usr_tech001\",\n      \"name\": \"Ahmed Hassan\",\n      \"email\": \"technician@example.com\",\n      \"role\": \"TECHNICIAN\"\n    },\n    \"createdAt\": \"2025-10-12T11:00:00.000Z\",\n    \"updatedAt\": \"2025-10-12T11:00:00.000Z\"\n  }\n}"
+                },
+                {
+                  "name": "Missing Required Fields",
+                  "originalRequest": {
+                    "method": "POST",
+                    "url": "{{base_url}}/api/requests",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Authorization",
+                        "value": "Bearer {{customer_token}}"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"title\": \"Fix broken door\"\n}"
+                    }
+                  },
+                  "status": "Bad Request",
+                  "code": 400,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"errors\": [\n    {\n      \"field\": \"description\",\n      \"message\": \"Description is required\"\n    },\n    {\n      \"field\": \"categoryId\",\n      \"message\": \"Category ID is required\"\n    },\n    {\n      \"field\": \"location\",\n      \"message\": \"Location is required\"\n    },\n    {\n      \"field\": \"building\",\n      \"message\": \"Building is required\"\n    }\n  ]\n}"
+                },
+                {
+                  "name": "Unauthorized - No Token",
+                  "originalRequest": {
+                    "method": "POST",
+                    "url": "{{base_url}}/api/requests",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"title\": \"Fix broken door in Building A\",\n  \"description\": \"The main entrance door to Building A is not closing properly.\",\n  \"priority\": \"MEDIUM\",\n  \"categoryId\": 1,\n  \"location\": \"Main Entrance\",\n  \"building\": \"Building A\"\n}"
+                    }
+                  },
+                  "status": "Unauthorized",
+                  "code": 401,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "body": "{\n  \"success\": false,\n  \"message\": \"Authentication required\",\n  \"error\": {\n    \"code\": \"NO_TOKEN\",\n    \"details\": \"No authentication token provided\"\n  }\n}"
+                },
+                {
+                  "name": "Invalid Priority Value",
+                  "originalRequest": {
+                    "method": "POST",
+                    "url": "{{base_url}}/api/requests",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Authorization",
+                        "value": "Bearer {{customer_token}}"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"title\": \"Fix broken door\",\n  \"description\": \"The door is broken\",\n  \"priority\": \"INVALID_PRIORITY\",\n  \"categoryId\": 1,\n  \"location\": \"Main Entrance\",\n  \"building\": \"Building A\"\n}"
+                    }
+                  },
+                  "status": "Bad Request",
+                  "code": 400,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "body": "{\n  \"success\": false,\n  \"message\": \"Validation failed\",\n  \"errors\": [\n    {\n      \"field\": \"priority\",\n      \"message\": \"Priority must be one of: LOW, MEDIUM, HIGH, URGENT\"\n    }\n  ]\n}"
+                }
+              ]
             },
             {
               "name": "Get All Requests (Admin/Technician)",
