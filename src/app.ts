@@ -15,6 +15,7 @@ import { metricsMiddleware } from "@/middleware/monitoringMiddleware";
 import monitoringRoutes from "@/routes/monitoring.routes";
 import { notFoundHandler } from "./middleware/notFound";
 import { requestId } from "@/middleware/requestId";
+import requestRoutes from "@/routes/request.routes";
 import { setupSecurityHeaders } from "@/middleware/securityHeaders";
 import { specs } from "./docs/swagger";
 import superAdminRoutes from "@/routes/super-admin.routes";
@@ -65,6 +66,7 @@ app.get("/health", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/requests", requestRoutes);
 app.use("/api/super-admin", superAdminRoutes);
 
 // Move Swagger docs before error handler
