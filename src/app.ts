@@ -6,6 +6,7 @@ import { apiLimiter } from "@/middleware/rateLimiter";
 import { authLimiter } from "@/middleware/rateLimiter";
 import authRoutes from "@/routes/auth.routes";
 import { cache } from "@/middleware/cacheMiddleware";
+import categoryRoutes from "@/routes/category.routes";
 import { compressionMiddleware } from "@/middleware/performanceMiddleware";
 import cors from "cors";
 import { errorHandler } from "@/middleware/errorHandler";
@@ -66,6 +67,7 @@ app.get("/health", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/categories", categoryRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/super-admin", superAdminRoutes);
 
