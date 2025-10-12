@@ -13,6 +13,7 @@
     "docker:dev:down": "docker compose -f docker-compose.dev.yml down -v",
     "seed:dev": "ts-node -P tsconfig.scripts.json scripts/dev.seed.ts",
     "seed:prod": "ts-node -P tsconfig.scripts.json scripts/prod.seed.ts",
+    "seed:categories": "ts-node -P tsconfig.scripts.json scripts/seed-categories.ts",
     "migrate:dev": "npx prisma migrate dev",
     "migrate": "npx prisma migrate deploy",
     "generate": "npx prisma generate",
