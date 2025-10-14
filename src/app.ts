@@ -65,13 +65,17 @@ app.get("/health", (req, res) => {
   });
 });
 
+// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/super-admin", superAdminRoutes);
 
-// Move Swagger docs before error handler
+// Monitoring Routes (consolidated - removed duplicate)
+app.use("/api/monitoring", monitoringRoutes);
+
+// Swagger Documentation
 const swaggerOptions = {
   explorer: true,
   swaggerOptions: {
@@ -87,27 +91,17 @@ const swaggerOptions = {
   customSiteTitle: "Express TypeScript API Documentation",
 };
 
-// Move monitoring routes before error handler
-app.use("/api/monitoring", monitoringRoutes);
-
-// Add Swagger documentation route at root level
 app.use("/api-docs", swaggerUi.serve);
 app.get("/api-docs", swaggerUi.setup(specs, swaggerOptions));
 
-// Error Handler should be last
+// 404 Handler - MUST be before error handler
+app.use(notFoundHandler);
+
+// Error Handler - MUST be ABSOLUTELY LAST
 const errorMiddleware: ErrorRequestHandler = (err, req, res, next) => {
   return errorHandler(err, req, res, next);
 };
 
 app.use(errorMiddleware);
-
-// Move cache middleware before error handler
-app.use("/api/users", cache({ duration: 300 }));
-
-// Monitoring routes
-app.use("/monitoring", monitoringRoutes);
-
-// Add this as the last middleware (before error handler)
-app.use(notFoundHandler);
 
 export default app;
