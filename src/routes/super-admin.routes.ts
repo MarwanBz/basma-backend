@@ -1,24 +1,14 @@
+import { requireAuth, requireRole } from "@/middleware/authMiddleware";
+
 import { Router } from "express";
 import { SuperAdminController } from "@/controllers/super-admin.controller";
 import { SuperAdminService } from "@/services/super-admin.service";
-import { requireAuth } from "@/middleware/authMiddleware";
 import { validateRequest } from "@/middleware/validateRequest";
 import { z } from "zod";
 
 const router = Router();
 const superAdminService = new SuperAdminService();
 const superAdminController = new SuperAdminController(superAdminService);
-
-// Middleware to check if user is Super Admin
-const superAdminMiddleware = (req: any, res: any, next: any) => {
-  if (req.user?.role !== "SUPER_ADMIN") {
-    return res.status(403).json({
-      success: false,
-      message: "Access denied. Super Admin role required.",
-    });
-  }
-  next();
-};
 
 // Validation schemas
 const createUserSchema = z.object({
@@ -108,7 +98,7 @@ const bulkDeleteSchema = z.object({
 
 // Apply authentication and Super Admin middleware to all routes
 router.use(requireAuth);
-router.use(superAdminMiddleware);
+router.use(requireRole(["SUPER_ADMIN"]));
 
 // User Management Routes
 router.post(

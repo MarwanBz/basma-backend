@@ -1,7 +1,8 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
+
+import { AppError } from "@/utils/appError";
 import { AuthService } from "@/services/auth.service";
 import { BaseController } from "./base.controller";
-import { AppError } from "@/utils/appError";
 
 export class AuthController extends BaseController {
   constructor(private authService: AuthService) {
@@ -9,10 +10,17 @@ export class AuthController extends BaseController {
   }
 
   signup = (req: Request, res: Response, next: NextFunction): void => {
-    this.handleRequest(req, res, next, async () => {
-      const { email, name, password } = req.body;
-      return await this.authService.signup(email, name, password);
-    });
+    this.handleRequest(
+      req,
+      res,
+      next,
+      async () => {
+        const { email, name, password } = req.body;
+        return await this.authService.signup(email, name, password);
+      },
+      201,
+      "User created successfully"
+    );
   };
 
   login = (req: Request, res: Response, next: NextFunction): void => {
@@ -46,7 +54,11 @@ export class AuthController extends BaseController {
     });
   };
 
-  resendVerification = (req: Request, res: Response, next: NextFunction): void => {
+  resendVerification = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): void => {
     this.handleRequest(req, res, next, async () => {
       const { email } = req.body;
       return await this.authService.resendVerificationEmail(email);
