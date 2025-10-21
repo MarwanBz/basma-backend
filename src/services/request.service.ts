@@ -490,12 +490,13 @@ export class RequestService {
     const previousTechnicianId = request.assignedToId;
 
     // Update the request
+    const shouldUpdateStatus = request.status === "SUBMITTED";
     const updatedRequest = await prisma.maintenance_request.update({
       where: { id: requestId },
       data: {
         assignedToId: data.assignedToId,
         assignedById,
-        status: request.status === "SUBMITTED" ? "ASSIGNED" : request.status,
+        status: shouldUpdateStatus ? "ASSIGNED" : request.status,
       },
     });
 
@@ -513,14 +514,17 @@ export class RequestService {
       },
     });
 
-    // Update status if needed
-    if (request.status === "SUBMITTED") {
-      await this.updateRequestStatus(
-        requestId,
-        { status: "ASSIGNED", reason: "Request assigned to technician" },
-        assignedById,
-        userRole
-      );
+    // Record status change in history only if status changed
+    if (shouldUpdateStatus) {
+      await prisma.request_status_history.create({
+        data: {
+          fromStatus: "SUBMITTED",
+          toStatus: "ASSIGNED",
+          reason: "Request assigned to technician",
+          changedById: assignedById,
+          requestId,
+        },
+      });
     }
 
     return updatedRequest;
@@ -607,7 +611,7 @@ export class RequestService {
       CUSTOMER: ["DRAFT", "SUBMITTED"],
       TECHNICIAN: ["IN_PROGRESS", "COMPLETED"],
       BASMA_ADMIN: [], // Can only view, not update status
-      MAINTENANCE_ADMIN: ["ASSIGNED", "REJECTED"],
+      MAINTENANCE_ADMIN: ["ASSIGNED", "REJECTED", "IN_PROGRESS", "COMPLETED"], // Enhanced with emergency permissions
       SUPER_ADMIN: [
         "DRAFT",
         "SUBMITTED",
