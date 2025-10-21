@@ -21,6 +21,7 @@ import { setupSecurityHeaders } from "@/middleware/securityHeaders";
 import { specs } from "./docs/swagger";
 import superAdminRoutes from "@/routes/super-admin.routes";
 import swaggerUi from "swagger-ui-express";
+import technicianRoutes from "@/routes/technician.routes";
 import userRoutes from "@/routes/user.routes";
 
 const app = express();
@@ -70,6 +71,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/requests", requestRoutes);
+app.use("/api/technicians", technicianRoutes);
 app.use("/api/super-admin", superAdminRoutes);
 
 // Monitoring Routes (consolidated - removed duplicate)
