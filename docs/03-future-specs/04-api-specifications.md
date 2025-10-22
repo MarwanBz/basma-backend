@@ -36,7 +36,68 @@ interface ApiResponse<T> {
 }
 \`\`\`
 
-### 2.4 Error Codes
+### 2.4 Pagination Standards
+All paginated endpoints MUST follow these standards:
+
+#### 2.4.1 Query Parameters
+\`\`\`typescript
+interface PaginationQuery {
+  page?: number    // default: 1, min: 1
+  limit?: number   // default: 20, min: 1, max: 100
+  sortBy?: string  // default field based on resource
+  sortOrder?: 'asc' | 'desc'  // default: 'desc'
+}
+\`\`\`
+
+#### 2.4.2 Validation Rules
+- **page**: Must be integer ≥ 1, default = 1
+- **limit**: Must be integer between 1-100, default = 20
+- **Parameter type**: String transformed to number with proper validation
+- **Regex validation**: `^\d+$` for both page and limit
+
+#### 2.4.3 Response Format (Standardized)
+\`\`\`typescript
+interface PaginatedResponse<T> {
+  success: boolean
+  data: {
+    [resourceName]: T[]  // e.g., requests, users, technicians
+    pagination: {
+      page: number
+      limit: number
+      total: number
+      totalPages: number
+    }
+  }
+}
+\`\`\`
+
+#### 2.4.4 Implementation Examples
+\`\`\`typescript
+// ✅ CORRECT Implementation
+GET /api/requests?page=1&limit=20
+
+// Response:
+{
+  "success": true,
+  "data": {
+    "requests": [...],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 100,
+      "totalPages": 5
+    }
+  }
+}
+
+// ❌ INCORRECT Implementations to Fix:
+// - Missing data wrapper
+// - Using "pages" instead of "totalPages"
+// - Different default limits
+// - No validation schemas
+\`\`\`
+
+### 2.5 Error Codes
 \`\`\`typescript
 enum ErrorCodes {
   VALIDATION_ERROR = 'VALIDATION_ERROR',
@@ -49,9 +110,9 @@ enum ErrorCodes {
 }
 \`\`\`
 
-## 3. Authentication APIs
+## 4. Authentication APIs
 
-### 3.1 POST /auth/login
+### 4.1 POST /auth/login
 **Description**: Authenticate user and return JWT tokens
 
 **Request Body**:
@@ -87,7 +148,7 @@ interface LoginResponse {
 - `400`: Invalid credentials
 - `429`: Too many login attempts
 
-### 3.2 POST /auth/refresh
+### 4.2 POST /auth/refresh
 **Description**: Refresh access token using refresh token
 
 **Request Body**:
@@ -107,7 +168,7 @@ interface RefreshResponse {
 }
 \`\`\`
 
-### 3.3 POST /auth/logout
+### 4.3 POST /auth/logout
 **Description**: Logout user and invalidate refresh token
 
 **Request Body**:
@@ -117,20 +178,20 @@ interface LogoutRequest {
 }
 \`\`\`
 
-## 4. Maintenance Requests APIs
+## 5. Maintenance Requests APIs
 
-### 4.1 GET /requests
+### 5.1 GET /requests
 **Description**: Get paginated list of maintenance requests
 
 **Query Parameters**:
 \`\`\`typescript
 interface RequestsQuery {
-  page?: number // default: 1
-  limit?: number // default: 20, max: 100
+  page?: number // default: 1, min: 1
+  limit?: number // default: 20, min: 1, max: 100
   status?: 'pending' | 'assigned' | 'in_progress' | 'completed' | 'cancelled'
   priority?: 'low' | 'medium' | 'high' | 'urgent'
   assignedTo?: string // technician ID
-  search?: string // search in title, description, location
+  search?: string // search in title, description, location, customIdentifier
   sortBy?: 'createdAt' | 'updatedAt' | 'dueDate' | 'priority'
   sortOrder?: 'asc' | 'desc'
   dateFrom?: string // ISO date
