@@ -30,10 +30,11 @@ export const createRequestSchema = z.object({
     priority: requestPrioritySchema.default("MEDIUM"),
     categoryId: z.number().int().positive(),
     location: z.string().min(2).max(100).trim(),
-    building: z.string().min(2).max(100).trim().optional(),
+    building: z.string().min(1).max(100).trim(), // Now required for identifier generation
     specificLocation: z.string().min(2).max(200).trim().optional(),
     estimatedCost: z.number().positive().optional(),
     scheduledDate: z.string().datetime().optional(),
+    customIdentifier: z.string().min(3).max(20).regex(/^[A-Z0-9-]+$/i, "Only letters, numbers, and hyphens allowed").optional(), // Admin only
   }),
 });
 
