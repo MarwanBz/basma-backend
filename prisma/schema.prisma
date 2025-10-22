@@ -34,6 +34,7 @@ model user {
   newAssignments          request_assignment_history[] @relation("NewAssignee")
   identifiersCreated      request_identifier[] @relation("IdentifierCreator")
   buildingConfigsCreated  building_config[] @relation("BuildingConfigCreator")
+  filesUploaded           file_attachment[] @relation("FileUploader")
 
   @@map("users")
 }
@@ -271,4 +272,81 @@ model building_config {
   @@index([buildingName])
   @@index([buildingCode])
   @@index([isActive])
+}
+
+// File Attachment model for polymorphic file management
+model file_attachment {
+  id               String           @id @default(uuid())
+
+  // File information
+  originalName     String           @db.VarChar(255)
+  fileName         String           @db.VarChar(255) // Generated unique filename
+  filePath         String           @db.Text         // Storage path
+  fileSize         Int                             // Size in bytes
+  mimeType         String           @db.VarChar(100)
+  fileExtension    String           @db.VarChar(10)
+
+  // File metadata
+  checksum         String           @db.VarChar(64)  // SHA-256 hash
+  width            Int?                            // For images
+  height           Int?                            // For images
+  duration         Int?                            // For videos/audio in seconds
+
+  // Processing status
+  processingStatus file_processing_status @default(PENDING)
+  thumbnailPath    String?          @db.Text         // Path to thumbnail
+  isPublic         Boolean          @default(false)
+
+  // Security and validation
+  isScanned        Boolean          @default(false)
+  scanResult       String?          @db.VarChar(20)  // "CLEAN", "INFECTED", "SUSPICIOUS"
+  isValidated      Boolean          @default(false)
+
+  // Polymorphic relationship - can be attached to any entity
+  entityType       file_entity_type
+  entityId         String
+
+  // Upload metadata
+  uploadedById     String
+  uploadIp         String?          @db.VarChar(45)  // Support IPv6
+
+  // Expiration and access
+  expiresAt        DateTime?
+  downloadCount    Int              @default(0)
+  lastAccessedAt   DateTime?
+
+  // Timestamps
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  // Relations
+  uploadedBy       user             @relation("FileUploader", fields: [uploadedById], references: [id])
+
+  @@map("file_attachments")
+  @@index([entityType, entityId])
+  @@index([uploadedById])
+  @@index([processingStatus])
+  @@index([isPublic])
+  @@index([expiresAt])
+  @@index([createdAt])
+  @@index([checksum])
+  @@unique([fileName])
+}
+
+// Enums for file attachments
+enum file_entity_type {
+  MAINTENANCE_REQUEST
+  REQUEST_COMMENT
+  USER_PROFILE
+  BUILDING_CONFIG
+  // Extensible for future entity types
+}
+
+enum file_processing_status {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  THUMBNAIL_GENERATING
+  VIRUS_SCANNING
 }
