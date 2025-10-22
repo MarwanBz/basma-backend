@@ -1,0 +1,57 @@
+// Custom Request Identifier model
+model request_identifier {
+  id               String           @id @default(uuid())
+  identifier       String           @unique @db.VarChar(50) // e.g., "25-A-001", "ABRAJ-1"
+  building         String           @db.VarChar(100)
+  year             Int
+  sequence         Int
+  isActive         Boolean          @default(true)
+
+  // Admin customization fields
+  customPattern    String?          @db.VarChar(200) // Custom pattern template
+  customSequence   Int?             // Custom sequence override
+
+  // Metadata
+  createdBy        String           // Foreign key to user who created/modified
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  // Relations
+  creator          user             @relation("IdentifierCreator", fields: [createdBy], references: [id])
+  requests         maintenance_request[]
+
+  @@map("request_identifiers")
+  @@index([building])
+  @@index([year])
+  @@index([isActive])
+  @@index([identifier])
+}
+
+// Building configuration model for admin management
+model building_config {
+  id               String           @id @default(uuid())
+  buildingName     String           @unique @db.VarChar(100) // e.g., "A", "B", "ABRAJ-1"
+  buildingCode     String           @unique @db.VarChar(20)  // e.g., "A", "B", "ABRAJ"
+  displayName      String           @db.VarChar(100)        // e.g., "Building A", "برج اول"
+
+  // Sequence management
+  currentSequence  Int              @default(0)
+  lastResetYear    Int?
+
+  // Admin customization enabled
+  allowCustomId    Boolean          @default(false)
+
+  // Metadata
+  isActive         Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  // Relations
+  createdBy        String
+  creator          user             @relation("BuildingConfigCreator", fields: [createdBy], references: [id])
+
+  @@map("building_configs")
+  @@index([buildingName])
+  @@index([buildingCode])
+  @@index([isActive])
+}

@@ -10,14 +10,37 @@ import {
 
 import { AppError } from "@/utils/appError";
 import { ErrorCode } from "@/utils/errorCodes";
+import { RequestIdentifierService } from "./requestIdentifier.service";
 import prisma from "@/config/database";
 
 export class RequestService {
+  private identifierService: RequestIdentifierService;
+
+  constructor() {
+    this.identifierService = new RequestIdentifierService();
+  }
+
   /**
    * Create a new maintenance request
    */
   async createRequest(data: CreateRequestInput["body"], userId: string) {
     try {
+      // Validate building is provided
+      if (!data.building) {
+        throw new AppError(
+          "Building is required for creating a maintenance request",
+          400,
+          ErrorCode.INVALID_INPUT
+        );
+      }
+
+      // Generate custom identifier
+      const customIdentifier = await this.identifierService.generateIdentifier(
+        data.building,
+        data.customIdentifier, // Allow admin to provide custom identifier
+        userId
+      );
+
       const request = await prisma.maintenance_request.create({
         data: {
           title: data.title,
@@ -32,6 +55,7 @@ export class RequestService {
             ? new Date(data.scheduledDate)
             : null,
           requestedById: userId,
+          customIdentifier,
           status: "SUBMITTED", // Default status for new requests
         },
         include: {
@@ -128,6 +152,7 @@ export class RequestService {
         { title: { contains: queryFilters.search, mode: "insensitive" } },
         { description: { contains: queryFilters.search, mode: "insensitive" } },
         { location: { contains: queryFilters.search, mode: "insensitive" } },
+        { customIdentifier: { contains: queryFilters.search, mode: "insensitive" } },
       ];
     }
     if (queryFilters.dateFrom || queryFilters.dateTo) {
