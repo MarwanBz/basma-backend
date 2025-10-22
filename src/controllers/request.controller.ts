@@ -26,6 +26,19 @@ export class RequestController extends BaseController {
   };
 
   /**
+   * Create a new maintenance request (helper method for internal use)
+   */
+  createRequest = async (
+    requestData: any,
+    user: any
+  ): Promise<any> => {
+    if (!user?.userId) {
+      throw new AppError("User not authenticated", 401);
+    }
+    return await this.requestService.createRequest(requestData, user.userId);
+  };
+
+  /**
    * Get all requests with filtering and pagination
    */
   getAll = async (
