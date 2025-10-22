@@ -71,10 +71,11 @@ router.use(requireAuth);
  * @swagger
  * /technicians:
  *   get:
- *     summary: Get all technicians (Admin only)
+ *     summary: Get all technicians (Admin read access)
  *     tags: [Technicians]
  *     security:
  *       - bearerAuth: []
+ *     description: Get paginated list of all technicians. Accessible by SUPER_ADMIN, MAINTENANCE_ADMIN, and BASMA_ADMIN roles.
  *     parameters:
  *       - in: query
  *         name: page
@@ -101,11 +102,11 @@ router.use(requireAuth);
  *       401:
  *         description: Unauthorized
  *       403:
- *         description: Forbidden - Admin only
+ *         description: Forbidden - Admin access required (SUPER_ADMIN, MAINTENANCE_ADMIN, BASMA_ADMIN)
  */
 router.get(
   "/",
-  requireRole(["SUPER_ADMIN", "MAINTENANCE_ADMIN"]),
+  requireRole(["SUPER_ADMIN", "MAINTENANCE_ADMIN", "BASMA_ADMIN"]),
   cache({ duration: 300 }), // Cache for 5 minutes
   technicianController.getAll
 );
@@ -114,10 +115,11 @@ router.get(
  * @swagger
  * /technicians/{id}:
  *   get:
- *     summary: Get technician by ID
+ *     summary: Get technician by ID (Admin read access)
  *     tags: [Technicians]
  *     security:
  *       - bearerAuth: []
+ *     description: Get detailed information about a specific technician by ID. Accessible by SUPER_ADMIN, MAINTENANCE_ADMIN, and BASMA_ADMIN roles.
  *     parameters:
  *       - in: path
  *         name: id
@@ -139,12 +141,13 @@ router.get(
  *                 data:
  *                   $ref: '#/components/schemas/Technician'
  *       403:
- *         description: Forbidden - Not authorized to access this profile
+ *         description: Forbidden - Admin access required (SUPER_ADMIN, MAINTENANCE_ADMIN, BASMA_ADMIN)
  *       404:
  *         description: Technician not found
  */
 router.get(
   "/:id",
+  requireRole(["SUPER_ADMIN", "MAINTENANCE_ADMIN", "BASMA_ADMIN"]),
   cache({ duration: 60 }), // Cache for 1 minute
   technicianController.getById
 );
