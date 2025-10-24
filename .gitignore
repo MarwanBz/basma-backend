@@ -5,6 +5,9 @@ logs/
 *.log
 coverage/
 
+# Firebase credentials
+config/firebase-service-account.json
+
 # Logs
 logs
 npm-debug.log*

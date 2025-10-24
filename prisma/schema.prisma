@@ -8,38 +8,36 @@ datasource db {
 }
 
 model user {
-  id                      String    @id @default(uuid())
-  name                    String    @db.VarChar(99)
-  email                   String    @unique @db.VarChar(99)
-  password                String?   @db.VarChar(100)
-  refreshToken            String?   @db.Text
-  role                    user_role @default(USER)
-  emailVerified           DateTime?
-  emailVerificationToken  String?   @db.VarChar(100)
+  id                       String                       @id @default(uuid())
+  name                     String                       @db.VarChar(99)
+  email                    String                       @unique @db.VarChar(99)
+  password                 String?                      @db.VarChar(100)
+  refreshToken             String?                      @db.Text
+  role                     user_role                    @default(USER)
+  emailVerified            DateTime?
+  emailVerificationToken   String?                      @db.VarChar(100)
   emailVerificationExpires DateTime?
-  passwordResetToken      String?   @db.VarChar(100)
-  passwordResetExpires    DateTime?
-  image                   String?
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
-
-  // Relations
-  requestsCreated         maintenance_request[] @relation("RequestCreator")
-  requestsAssigned        maintenance_request[] @relation("RequestAssignee")
-  requestsAssignedBy      maintenance_request[] @relation("RequestAssigner")
-  commentsCreated         request_comment[] @relation("CommentCreator")
-  statusChangesMade       request_status_history[] @relation("StatusChanger")
-  assignmentsMade         request_assignment_history[] @relation("AssignmentChanger")
-  previousAssignments     request_assignment_history[] @relation("PreviousAssignee")
-  newAssignments          request_assignment_history[] @relation("NewAssignee")
-  identifiersCreated      request_identifier[] @relation("IdentifierCreator")
-  buildingConfigsCreated  building_config[] @relation("BuildingConfigCreator")
-  filesUploaded           file_attachment[] @relation("FileUploader")
+  passwordResetToken       String?                      @db.VarChar(100)
+  passwordResetExpires     DateTime?
+  image                    String?
+  createdAt                DateTime                     @default(now())
+  updatedAt                DateTime                     @updatedAt
+  buildingConfigsCreated   building_config[]            @relation("BuildingConfigCreator")
+  fcm_device_tokens        fcm_device_tokens[]
+  filesUploaded            file_attachment[]            @relation("FileUploader")
+  requestsAssignedBy       maintenance_request[]        @relation("RequestAssigner")
+  requestsAssigned         maintenance_request[]        @relation("RequestAssignee")
+  requestsCreated          maintenance_request[]        @relation("RequestCreator")
+  assignmentsMade          request_assignment_history[] @relation("AssignmentChanger")
+  previousAssignments      request_assignment_history[] @relation("PreviousAssignee")
+  newAssignments           request_assignment_history[] @relation("NewAssignee")
+  commentsCreated          request_comment[]            @relation("CommentCreator")
+  identifiersCreated       request_identifier[]         @relation("IdentifierCreator")
+  statusChangesMade        request_status_history[]     @relation("StatusChanger")
 
   @@map("users")
 }
 
-// Request Category model
 model request_category {
   id          Int                   @id @default(autoincrement())
   name        String                @db.VarChar(50)
@@ -47,58 +45,42 @@ model request_category {
   isActive    Boolean               @default(true)
   createdAt   DateTime              @default(now())
   updatedAt   DateTime              @updatedAt
-
-  // Relations
   requests    maintenance_request[]
 
-  @@map("request_categories")
   @@index([name])
   @@index([isActive])
+  @@map("request_categories")
 }
 
-// Maintenance Request model
 model maintenance_request {
-  id               String           @id @default(uuid())
-  title            String           @db.VarChar(200)
-  description      String           @db.Text
-  priority         request_priority @default(MEDIUM)
-  status           request_status   @default(SUBMITTED)
-  categoryId       Int
-  location         String           @db.VarChar(100)
-  
-  // Enhanced location structure
-  building         String?          @db.VarChar(100)
-  specificLocation String?          @db.VarChar(200)
-  
-  // User relationships
-  requestedById    String           // Foreign key to user
-  assignedToId     String?          // Foreign key to user (nullable)
-  assignedById     String?          // Foreign key to user who assigned the request
-  
-  // Cost and timing
-  estimatedCost    Decimal?         @db.Decimal(10,2)
-  actualCost       Decimal?         @db.Decimal(10,2)
-  scheduledDate    DateTime?
-  completedDate    DateTime?
-  
-  // Custom identifier
-  customIdentifier String?          @db.VarChar(50) @unique // e.g., "25-A-001", "ABRAJ-1"
-
-  // Timestamps
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-
-  // Relations
-  category         request_category @relation(fields: [categoryId], references: [id])
-  requestedBy      user             @relation("RequestCreator", fields: [requestedById], references: [id])
-  assignedTo       user?            @relation("RequestAssignee", fields: [assignedToId], references: [id])
-  assignedBy       user?            @relation("RequestAssigner", fields: [assignedById], references: [id])
-  identifier       request_identifier? @relation(fields: [customIdentifier], references: [identifier])
-  comments         request_comment[]
-  statusHistory    request_status_history[]
+  id                String                       @id @default(uuid())
+  title             String                       @db.VarChar(200)
+  description       String                       @db.Text
+  priority          request_priority             @default(MEDIUM)
+  status            request_status               @default(SUBMITTED)
+  categoryId        Int
+  location          String                       @db.VarChar(100)
+  building          String?                      @db.VarChar(100)
+  specificLocation  String?                      @db.VarChar(200)
+  requestedById     String
+  assignedToId      String?
+  assignedById      String?
+  estimatedCost     Decimal?                     @db.Decimal(10, 2)
+  actualCost        Decimal?                     @db.Decimal(10, 2)
+  scheduledDate     DateTime?
+  completedDate     DateTime?
+  createdAt         DateTime                     @default(now())
+  updatedAt         DateTime                     @updatedAt
+  customIdentifier  String?                      @unique @db.VarChar(50)
+  assignedBy        user?                        @relation("RequestAssigner", fields: [assignedById], references: [id])
+  assignedTo        user?                        @relation("RequestAssignee", fields: [assignedToId], references: [id])
+  category          request_category             @relation(fields: [categoryId], references: [id])
+  identifier        request_identifier?          @relation(fields: [customIdentifier], references: [identifier])
+  requestedBy       user                         @relation("RequestCreator", fields: [requestedById], references: [id])
   assignmentHistory request_assignment_history[]
+  comments          request_comment[]
+  statusHistory     request_status_history[]
 
-  @@map("maintenance_requests")
   @@index([status])
   @@index([priority])
   @@index([categoryId])
@@ -108,88 +90,187 @@ model maintenance_request {
   @@index([createdAt])
   @@index([scheduledDate])
   @@index([building])
+  @@map("maintenance_requests")
 }
 
-// Request Comment model
 model request_comment {
-  id               String           @id @default(uuid())
-  text             String           @db.Text
-  isInternal       Boolean          @default(false) // Internal comments vs customer-visible
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  
-  // User relationships
-  userId           String           // Foreign key to user who made the comment
-  requestId        String           // Foreign key to maintenance request
-  
-  // Relations
-  user             user             @relation("CommentCreator", fields: [userId], references: [id])
-  request          maintenance_request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  id         String              @id @default(uuid())
+  text       String              @db.Text
+  isInternal Boolean             @default(false)
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+  userId     String
+  requestId  String
+  request    maintenance_request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user       user                @relation("CommentCreator", fields: [userId], references: [id])
 
-  @@map("request_comments")
   @@index([requestId])
   @@index([userId])
   @@index([createdAt])
+  @@map("request_comments")
 }
 
-// Request Status History model
 model request_status_history {
-  id               String           @id @default(uuid())
-  fromStatus       request_status?  // Previous status (null for initial status)
-  toStatus         request_status   // New status
-  reason           String?          @db.VarChar(500) // Optional reason for status change
-  createdAt        DateTime         @default(now())
-  
-  // User relationships
-  changedById      String?          // Foreign key to user who made the change (nullable for existing records)
-  requestId        String           // Foreign key to maintenance request
-  
-  // Relations
-  changedBy        user?            @relation("StatusChanger", fields: [changedById], references: [id])
-  request          maintenance_request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  id          String              @id @default(uuid())
+  fromStatus  request_status?
+  toStatus    request_status
+  reason      String?             @db.VarChar(500)
+  createdAt   DateTime            @default(now())
+  changedById String?
+  requestId   String
+  changedBy   user?               @relation("StatusChanger", fields: [changedById], references: [id])
+  request     maintenance_request @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
-  @@map("request_status_history")
   @@index([requestId])
   @@index([changedById])
   @@index([createdAt])
+  @@map("request_status_history")
 }
 
-// Request Assignment History model
 model request_assignment_history {
-  id               String           @id @default(uuid())
-  fromTechnicianId String?          // Previous technician (null for initial assignment)
-  toTechnicianId   String?          // New technician (null for unassignment)
-  assignmentType   assignment_type  // Type of assignment change
-  reason           String?          @db.VarChar(500) // Optional reason for assignment change
-  createdAt        DateTime         @default(now())
-  
-  // User relationships
-  assignedById     String           // Foreign key to user who made the assignment
-  requestId        String           // Foreign key to maintenance request
-  
-  // Relations
-  assignedBy       user             @relation("AssignmentChanger", fields: [assignedById], references: [id])
-  fromTechnician   user?            @relation("PreviousAssignee", fields: [fromTechnicianId], references: [id])
-  toTechnician     user?            @relation("NewAssignee", fields: [toTechnicianId], references: [id])
+  id               String              @id @default(uuid())
+  fromTechnicianId String?
+  toTechnicianId   String?
+  assignmentType   assignment_type
+  reason           String?             @db.VarChar(500)
+  createdAt        DateTime            @default(now())
+  assignedById     String
+  requestId        String
+  assignedBy       user                @relation("AssignmentChanger", fields: [assignedById], references: [id])
+  fromTechnician   user?               @relation("PreviousAssignee", fields: [fromTechnicianId], references: [id])
   request          maintenance_request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  toTechnician     user?               @relation("NewAssignee", fields: [toTechnicianId], references: [id])
 
-  @@map("request_assignment_history")
   @@index([requestId])
   @@index([assignedById])
   @@index([fromTechnicianId])
   @@index([toTechnicianId])
   @@index([createdAt])
+  @@map("request_assignment_history")
 }
 
-// Enums
+model request_identifier {
+  id             String               @id @default(uuid())
+  identifier     String               @unique @db.VarChar(50)
+  building       String               @db.VarChar(100)
+  year           Int
+  sequence       Int
+  isActive       Boolean              @default(true)
+  customPattern  String?              @db.VarChar(200)
+  customSequence Int?
+  createdBy      String
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  requests       maintenance_request?
+  creator        user                 @relation("IdentifierCreator", fields: [createdBy], references: [id])
+
+  @@index([building])
+  @@index([year])
+  @@index([isActive])
+  @@index([identifier])
+  @@index([createdBy], map: "request_identifiers_createdBy_fkey")
+  @@map("request_identifiers")
+}
+
+model building_config {
+  id              String   @id @default(uuid())
+  buildingName    String   @unique @db.VarChar(100)
+  buildingCode    String   @unique @db.VarChar(20)
+  displayName     String   @db.VarChar(100)
+  currentSequence Int      @default(0)
+  lastResetYear   Int?
+  allowCustomId   Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdBy       String
+  creator         user     @relation("BuildingConfigCreator", fields: [createdBy], references: [id])
+
+  @@index([buildingName])
+  @@index([buildingCode])
+  @@index([isActive])
+  @@index([createdBy], map: "building_configs_createdBy_fkey")
+  @@map("building_configs")
+}
+
+model file_attachment {
+  id               String                 @id @default(uuid())
+  originalName     String                 @db.VarChar(255)
+  fileName         String                 @unique @db.VarChar(255)
+  filePath         String                 @db.Text
+  fileSize         Int
+  mimeType         String                 @db.VarChar(100)
+  fileExtension    String                 @db.VarChar(10)
+  checksum         String                 @db.VarChar(64)
+  width            Int?
+  height           Int?
+  duration         Int?
+  processingStatus file_processing_status @default(PENDING)
+  thumbnailPath    String?                @db.Text
+  isPublic         Boolean                @default(false)
+  isScanned        Boolean                @default(false)
+  scanResult       String?                @db.VarChar(20)
+  isValidated      Boolean                @default(false)
+  entityType       file_entity_type
+  entityId         String
+  uploadedById     String
+  uploadIp         String?                @db.VarChar(45)
+  expiresAt        DateTime?
+  downloadCount    Int                    @default(0)
+  lastAccessedAt   DateTime?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  uploadedBy       user                   @relation("FileUploader", fields: [uploadedById], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([uploadedById])
+  @@index([processingStatus])
+  @@index([isPublic])
+  @@index([expiresAt])
+  @@index([createdAt])
+  @@index([checksum])
+  @@map("file_attachments")
+}
+
+model fcm_device_tokens {
+  id                      String                     @id
+  token                   String                     @unique @db.VarChar(500)
+  platform                fcm_device_tokens_platform
+  deviceId                String?                    @db.VarChar(100)
+  appVersion              String?                    @db.VarChar(20)
+  isActive                Boolean                    @default(true)
+  lastUsedAt              DateTime?
+  createdAt               DateTime                   @default(now())
+  updatedAt               DateTime
+  userId                  String
+  users                   user                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fcm_topic_subscriptions fcm_topic_subscriptions[]
+
+  @@index([isActive])
+  @@index([lastUsedAt])
+  @@index([platform])
+  @@index([userId])
+}
+
+model fcm_topic_subscriptions {
+  id                String            @id
+  topic             String            @db.VarChar(100)
+  createdAt         DateTime          @default(now())
+  tokenId           String
+  fcm_device_tokens fcm_device_tokens @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+
+  @@unique([tokenId, topic])
+  @@index([topic])
+}
+
 enum user_role {
   SUPER_ADMIN
   MAINTENANCE_ADMIN
   BASMA_ADMIN
   TECHNICIAN
   CUSTOMER
-  ADMIN // Keep existing ADMIN role
-  USER // Keep for backward compatibility
+  ADMIN
+  USER
 }
 
 enum request_status {
@@ -216,130 +297,11 @@ enum assignment_type {
   UNASSIGNMENT
 }
 
-// Custom Request Identifier model
-model request_identifier {
-  id               String           @id @default(uuid())
-  identifier       String           @unique @db.VarChar(50) // e.g., "25-A-001", "ABRAJ-1"
-  building         String           @db.VarChar(100)
-  year             Int
-  sequence         Int
-  isActive         Boolean          @default(true)
-
-  // Admin customization fields
-  customPattern    String?          @db.VarChar(200) // Custom pattern template
-  customSequence   Int?             // Custom sequence override
-
-  // Metadata
-  createdBy        String           // Foreign key to user who created/modified
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-
-  // Relations
-  creator          user             @relation("IdentifierCreator", fields: [createdBy], references: [id])
-  requests         maintenance_request[]
-
-  @@map("request_identifiers")
-  @@index([building])
-  @@index([year])
-  @@index([isActive])
-  @@index([identifier])
-}
-
-// Building configuration model for admin management
-model building_config {
-  id               String           @id @default(uuid())
-  buildingName     String           @unique @db.VarChar(100) // e.g., "A", "B", "ABRAJ-1"
-  buildingCode     String           @unique @db.VarChar(20)  // e.g., "A", "B", "ABRAJ"
-  displayName      String           @db.VarChar(100)        // e.g., "Building A", "برج اول"
-
-  // Sequence management
-  currentSequence  Int              @default(0)
-  lastResetYear    Int?
-
-  // Admin customization enabled
-  allowCustomId    Boolean          @default(false)
-
-  // Metadata
-  isActive         Boolean          @default(true)
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-
-  // Relations
-  createdBy        String
-  creator          user             @relation("BuildingConfigCreator", fields: [createdBy], references: [id])
-
-  @@map("building_configs")
-  @@index([buildingName])
-  @@index([buildingCode])
-  @@index([isActive])
-}
-
-// File Attachment model for polymorphic file management
-model file_attachment {
-  id               String           @id @default(uuid())
-
-  // File information
-  originalName     String           @db.VarChar(255)
-  fileName         String           @db.VarChar(255) // Generated unique filename
-  filePath         String           @db.Text         // Storage path
-  fileSize         Int                             // Size in bytes
-  mimeType         String           @db.VarChar(100)
-  fileExtension    String           @db.VarChar(10)
-
-  // File metadata
-  checksum         String           @db.VarChar(64)  // SHA-256 hash
-  width            Int?                            // For images
-  height           Int?                            // For images
-  duration         Int?                            // For videos/audio in seconds
-
-  // Processing status
-  processingStatus file_processing_status @default(PENDING)
-  thumbnailPath    String?          @db.Text         // Path to thumbnail
-  isPublic         Boolean          @default(false)
-
-  // Security and validation
-  isScanned        Boolean          @default(false)
-  scanResult       String?          @db.VarChar(20)  // "CLEAN", "INFECTED", "SUSPICIOUS"
-  isValidated      Boolean          @default(false)
-
-  // Polymorphic relationship - can be attached to any entity
-  entityType       file_entity_type
-  entityId         String
-
-  // Upload metadata
-  uploadedById     String
-  uploadIp         String?          @db.VarChar(45)  // Support IPv6
-
-  // Expiration and access
-  expiresAt        DateTime?
-  downloadCount    Int              @default(0)
-  lastAccessedAt   DateTime?
-
-  // Timestamps
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-
-  // Relations
-  uploadedBy       user             @relation("FileUploader", fields: [uploadedById], references: [id])
-
-  @@map("file_attachments")
-  @@index([entityType, entityId])
-  @@index([uploadedById])
-  @@index([processingStatus])
-  @@index([isPublic])
-  @@index([expiresAt])
-  @@index([createdAt])
-  @@index([checksum])
-  @@unique([fileName])
-}
-
-// Enums for file attachments
 enum file_entity_type {
   MAINTENANCE_REQUEST
   REQUEST_COMMENT
   USER_PROFILE
   BUILDING_CONFIG
-  // Extensible for future entity types
 }
 
 enum file_processing_status {
@@ -349,4 +311,10 @@ enum file_processing_status {
   FAILED
   THUMBNAIL_GENERATING
   VIRUS_SCANNING
+}
+
+enum fcm_device_tokens_platform {
+  ANDROID
+  IOS
+  WEB
 }
