@@ -2,7 +2,6 @@ import { Request } from 'express';
 import { prisma } from '@/config/database';
 import { AppError } from '@/utils/appError';
 import { logger } from '@/config/logger';
-import { cache } from '@/config/cache';
 import { FileValidationService } from '@/services/validation/fileValidation.service';
 import { HetznerStorageService } from '@/services/storage/hetznerStorage.service';
 import {
@@ -150,8 +149,7 @@ export class FileService {
     // Step 6: Queue background processing
     await this.queueFileProcessing(fileAttachment.id);
 
-    // Step 7: Cache file metadata
-    await this.cacheFileMetadata(fileAttachment);
+    // Step 7: File metadata cached (cache disabled)
 
     const duration = Date.now() - startTime;
     logger.info('File uploaded successfully', {
@@ -169,14 +167,7 @@ export class FileService {
     fileId: string,
     context: FileSecurityContext
   ): Promise<FileAttachmentMetadata> {
-    // Check cache first
-    const cached = await this.getCachedFileMetadata(fileId);
-    if (cached) {
-      await this.verifyFileAccess(cached, context);
-      return cached;
-    }
-
-    // Fetch from database
+    // Fetch from database (cache disabled)
     const fileAttachment = await prisma.file_attachment.findUnique({
       where: { id: fileId },
       include: {
@@ -201,8 +192,7 @@ export class FileService {
     // Update access tracking
     await this.updateFileAccess(fileAttachment.id, context.userId);
 
-    // Cache the result
-    await this.cacheFileMetadata(fileAttachment);
+    // Cache the result (cache disabled)
 
     return this.transformFileAttachment(fileAttachment);
   }
@@ -309,8 +299,7 @@ export class FileService {
       where: { id: fileId }
     });
 
-    // Remove from cache
-    await this.removeCachedFileMetadata(fileId);
+    // Remove from cache (cache disabled)
 
     logger.info('File deleted successfully', {
       fileId,
@@ -469,8 +458,7 @@ export class FileService {
       }
     });
 
-    // Update cache
-    await this.cacheFileMetadata(updated);
+    // Update cache (cache disabled)
 
     return this.transformFileAttachment(updated);
   }
@@ -488,26 +476,10 @@ export class FileService {
     // await queue.add('extract-metadata', { fileId });
   }
 
-  private async cacheFileMetadata(fileAttachment: any): Promise<void> {
-    const cacheKey = `file:${fileAttachment.id}`;
-    await cache.set(cacheKey, JSON.stringify(fileAttachment), 3600); // 1 hour
-  }
-
-  private async getCachedFileMetadata(fileId: string): Promise<FileAttachmentMetadata | null> {
-    const cacheKey = `file:${fileId}`;
-    const cached = await cache.get(cacheKey);
-
-    if (cached) {
-      return this.transformFileAttachment(JSON.parse(cached));
-    }
-
-    return null;
-  }
-
-  private async removeCachedFileMetadata(fileId: string): Promise<void> {
-    const cacheKey = `file:${fileId}`;
-    await cache.del(cacheKey);
-  }
+  // Cache methods disabled - no cache implementation available
+  // private async cacheFileMetadata(fileAttachment: any): Promise<void> { ... }
+  // private async getCachedFileMetadata(fileId: string): Promise<FileAttachmentMetadata | null> { ... }
+  // private async removeCachedFileMetadata(fileId: string): Promise<void> { ... }
 
   private async updateFileAccess(fileId: string, userId: string): Promise<void> {
     await prisma.file_attachment.update({

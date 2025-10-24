@@ -11,6 +11,7 @@ import { compressionMiddleware } from "@/middleware/performanceMiddleware";
 import cors from "cors";
 import { errorHandler } from "@/middleware/errorHandler";
 import express from "express";
+import fcmRoutes from "@/routes/fcm.routes";
 import fileRoutes from "@/routes/file.routes";
 import { loggingMiddleware } from "@/middleware/loggingMiddleware";
 import { metricsMiddleware } from "@/middleware/monitoringMiddleware";
@@ -77,6 +78,7 @@ app.use("/api/technicians", technicianRoutes);
 app.use("/api/super-admin", superAdminRoutes);
 app.use("/api/building-configs", buildingConfigRoutes);
 app.use("/api/files", fileRoutes);
+app.use("/api/fcm", fcmRoutes);
 
 // Monitoring Routes (consolidated - removed duplicate)
 app.use("/api/monitoring", monitoringRoutes);

@@ -8,6 +8,7 @@ import { ENV } from "@/config/env";
 interface JwtPayload {
   userId: string;
   role: string;
+  id?: string; // Backward compatibility
 }
 
 declare global {

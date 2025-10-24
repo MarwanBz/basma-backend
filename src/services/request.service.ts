@@ -11,6 +11,7 @@ import {
 import { AppError } from "@/utils/appError";
 import { ErrorCode } from "@/utils/errorCodes";
 import { RequestIdentifierService } from "./requestIdentifier.service";
+import { notificationService } from "./notification.service";
 import prisma from "@/config/database";
 
 export class RequestService {
@@ -90,6 +91,19 @@ export class RequestService {
         },
       });
 
+      // Send FCM notification to maintenance admins about new request
+      notificationService
+        .notifyNewRequest(
+          request.id,
+          request.title,
+          request.priority,
+          request.building || undefined
+        )
+        .catch((error) => {
+          // Log error but don't fail the request
+          console.error("Failed to send new request notification:", error);
+        });
+
       return request;
     } catch (error) {
       if (
@@ -152,7 +166,12 @@ export class RequestService {
         { title: { contains: queryFilters.search, mode: "insensitive" } },
         { description: { contains: queryFilters.search, mode: "insensitive" } },
         { location: { contains: queryFilters.search, mode: "insensitive" } },
-        { customIdentifier: { contains: queryFilters.search, mode: "insensitive" } },
+        {
+          customIdentifier: {
+            contains: queryFilters.search,
+            mode: "insensitive",
+          },
+        },
       ];
     }
     if (queryFilters.dateFrom || queryFilters.dateTo) {
@@ -444,6 +463,24 @@ export class RequestService {
       },
     });
 
+    // Send FCM notification for new comment (skip for internal comments)
+    if (!data.isInternal) {
+      notificationService
+        .notifyNewComment(
+          requestId,
+          request.title,
+          comment.user.name,
+          comment.text,
+          request.requestedById,
+          request.assignedToId || undefined,
+          userId
+        )
+        .catch((error) => {
+          // Log error but don't fail the request
+          console.error("Failed to send comment notification:", error);
+        });
+    }
+
     return comment;
   }
 
@@ -482,6 +519,20 @@ export class RequestService {
         requestId,
       },
     });
+
+    // Send FCM notification for status change
+    notificationService
+      .notifyRequestStatusChange(
+        requestId,
+        request.title,
+        newStatus,
+        request.requestedById,
+        request.assignedToId || undefined
+      )
+      .catch((error) => {
+        // Log error but don't fail the request
+        console.error("Failed to send status change notification:", error);
+      });
 
     return updatedRequest;
   }
@@ -550,6 +601,28 @@ export class RequestService {
           requestId,
         },
       });
+    }
+
+    // Get technician name for notification
+    const technicianWithName = await prisma.user.findUnique({
+      where: { id: data.assignedToId },
+      select: { name: true },
+    });
+
+    // Send FCM notification for technician assignment
+    if (technicianWithName) {
+      notificationService
+        .notifyTechnicianAssigned(
+          requestId,
+          request.title,
+          data.assignedToId,
+          technicianWithName.name,
+          request.requestedById
+        )
+        .catch((error) => {
+          // Log error but don't fail the request
+          console.error("Failed to send assignment notification:", error);
+        });
     }
 
     return updatedRequest;
@@ -657,4 +730,3 @@ export class RequestService {
     }
   }
 }
-

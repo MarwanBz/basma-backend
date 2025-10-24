@@ -20,4 +20,5 @@ const handleShutdown = async () => {
 process.on("SIGTERM", handleShutdown);
 process.on("SIGINT", handleShutdown);
 
+export { prisma };
 export default prisma;

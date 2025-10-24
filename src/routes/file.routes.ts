@@ -275,7 +275,7 @@ router.post(
   uploadRateLimit,
   FileController.uploadMiddleware,
   validateRequest(uploadFileSchema, 'body'),
-  fileController.uploadFile
+  fileController.uploadFiles
 );
 
 /**
