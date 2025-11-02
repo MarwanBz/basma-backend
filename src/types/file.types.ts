@@ -1,6 +1,10 @@
 import { Request } from 'express';
 import { file_entity_type, file_processing_status } from '@prisma/client';
 
+// Re-export types that are commonly needed
+export { file_entity_type, file_processing_status };
+export type { Express } from 'express';
+
 export interface FileUploadRequest {
   files: Express.Multer.File[];
   entityType: file_entity_type;
@@ -70,7 +74,7 @@ export interface FileSearchOptions {
   dateFrom?: Date;
   dateTo?: Date;
   search?: string;
-  sortBy?: 'createdAt' | 'updatedAt' | 'fileSize' | 'originalName';
+  sortBy?: 'createdAt' | 'updatedAt' | 'fileSize' | 'originalName' | string;
   sortOrder?: 'asc' | 'desc';
   page?: number;
   limit?: number;
@@ -114,9 +118,13 @@ export interface FileSecurityContext {
   userRole: string;
   entityId: string;
   entityType: file_entity_type;
+  ip: string;
+  userAgent?: string;
+  operation: 'upload' | 'download' | 'view' | 'delete' | 'update';
   permissions: FilePermissions;
   riskLevel: 'low' | 'medium' | 'high';
   securityFlags: string[];
+  fileId?: string;
 }
 
 export interface FilePermissions {
@@ -226,6 +234,7 @@ export interface FileAttachmentMetadata {
   duration?: number;
   processingStatus: file_processing_status;
   thumbnailPath?: string;
+  filePath?: string;
   isPublic: boolean;
   isScanned: boolean;
   scanResult?: string;

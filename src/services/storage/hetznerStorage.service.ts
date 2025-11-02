@@ -264,7 +264,7 @@ export class HetznerStorageService {
     options: StorageDownloadOptions = {}
   ): string {
     try {
-      const params: AWS.S3.GetSignedUrlRequest = {
+      const params: any = {
         Bucket: this.bucket,
         Key: key,
         Expires: expiresIn

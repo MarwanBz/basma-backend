@@ -66,7 +66,7 @@ router.get(
         },
       });
 
-      return res.status(200).json({
+      res.status(200).json({
         success: true,
         message: "Categories retrieved successfully",
         data: categories,
@@ -123,7 +123,7 @@ router.get(
         throw new AppError("Category not found", 404, ErrorCode.NOT_FOUND);
       }
 
-      return res.status(200).json({
+      res.status(200).json({
         success: true,
         message: "Category retrieved successfully",
         data: category,

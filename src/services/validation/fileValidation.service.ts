@@ -157,7 +157,7 @@ export class FileValidationService {
 
     // Check for dangerous extensions
     const extension = this.getFileExtension(file.originalname);
-    if (this.DANGEROUS_EXTENSIONS.includes(extension.toLowerCase())) {
+    if (FileValidationService.DANGEROUS_EXTENSIONS.includes(extension.toLowerCase())) {
       result.errors.push(`File type .${extension} is not allowed`);
       result.securityFlags.push('dangerous_extension');
     }
@@ -185,14 +185,14 @@ export class FileValidationService {
     const declaredMimeType = file.mimetype;
 
     // Check if MIME type is blocked
-    if (this.BLOCKED_MIME_TYPES.includes(declaredMimeType)) {
+    if (FileValidationService.BLOCKED_MIME_TYPES.includes(declaredMimeType)) {
       result.errors.push(`MIME type ${declaredMimeType} is not allowed`);
       result.securityFlags.push('blocked_mime_type');
       return;
     }
 
     // Check if MIME type is allowed
-    if (!this.ALLOWED_MIME_TYPES.includes(declaredMimeType)) {
+    if (!FileValidationService.ALLOWED_MIME_TYPES.includes(declaredMimeType)) {
       result.errors.push(`MIME type ${declaredMimeType} is not supported`);
       return;
     }
@@ -273,9 +273,9 @@ export class FileValidationService {
       }
 
       // Check dimension limits
-      if (metadata.width > this.MAX_IMAGE_DIMENSION || metadata.height > this.MAX_IMAGE_DIMENSION) {
+      if (metadata.width > FileValidationService.MAX_IMAGE_DIMENSION || metadata.height > FileValidationService.MAX_IMAGE_DIMENSION) {
         result.errors.push(
-          `Image dimensions too large (${metadata.width}x${metadata.height}, max ${this.MAX_IMAGE_DIMENSION}x${this.MAX_IMAGE_DIMENSION})`
+          `Image dimensions too large (${metadata.width}x${metadata.height}, max ${FileValidationService.MAX_IMAGE_DIMENSION}x${FileValidationService.MAX_IMAGE_DIMENSION})`
         );
         return;
       }
@@ -367,9 +367,9 @@ export class FileValidationService {
       return;
     }
 
-    if (file.size > this.MAX_FILE_SIZE) {
+    if (file.size > FileValidationService.MAX_FILE_SIZE) {
       result.errors.push(
-        `File size ${Math.round(file.size / 1024 / 1024)}MB exceeds maximum allowed size of ${Math.round(this.MAX_FILE_SIZE / 1024 / 1024)}MB`
+        `File size ${Math.round(file.size / 1024 / 1024)}MB exceeds maximum allowed size of ${Math.round(FileValidationService.MAX_FILE_SIZE / 1024 / 1024)}MB`
       );
       return;
     }
@@ -601,9 +601,9 @@ export class FileValidationService {
     const extension = this.getFileExtension(filename);
 
     return (
-      this.ALLOWED_MIME_TYPES.includes(mimeType) &&
-      !this.BLOCKED_MIME_TYPES.includes(mimeType) &&
-      !this.DANGEROUS_EXTENSIONS.includes(extension)
+      FileValidationService.ALLOWED_MIME_TYPES.includes(mimeType) &&
+      !FileValidationService.BLOCKED_MIME_TYPES.includes(mimeType) &&
+      !FileValidationService.DANGEROUS_EXTENSIONS.includes(extension)
     );
   }
 }
