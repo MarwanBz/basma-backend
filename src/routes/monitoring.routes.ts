@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { MonitoringController } from "@/controllers/monitoring.controller";
 import { MetricsService } from "@/services/metrics.service";
-import { requireAuth } from "@/middleware/authMiddleware";
+import { requireAuth, requireRole } from "@/middleware/authMiddleware";
 
 const router = Router();
 const metricsService = new MetricsService();
@@ -16,7 +16,7 @@ const monitoringController = new MonitoringController(metricsService);
 
 /**
  * @swagger
- * /monitoring/metrics:
+ * /api/v1/monitoring/metrics:
  *   get:
  *     summary: Get system metrics
  *     tags: [Monitoring]
@@ -31,12 +31,14 @@ const monitoringController = new MonitoringController(metricsService);
  *               type: string
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  */
-router.get("/metrics", monitoringController.getMetrics); // TODO: Add Authentication
+router.get("/metrics", requireAuth, requireRole(["SUPER_ADMIN", "MAINTENANCE_ADMIN"]), monitoringController.getMetrics);
 
 /**
  * @swagger
- * /monitoring/health:
+ * /api/v1/monitoring/health:
  *   get:
  *     summary: Check system health
  *     tags: [Monitoring]
@@ -63,7 +65,7 @@ router.get("/health", monitoringController.getHealth);
 
 /**
  * @swagger
- * /monitoring/readiness:
+ * /api/v1/monitoring/readiness:
  *   get:
  *     summary: Check if application is ready to handle traffic
  *     tags: [Monitoring]
@@ -83,7 +85,7 @@ router.get("/readiness", monitoringController.getReadiness);
 
 /**
  * @swagger
- * /monitoring/liveness:
+ * /api/v1/monitoring/liveness:
  *   get:
  *     summary: Check if application is alive
  *     tags: [Monitoring]
@@ -103,7 +105,7 @@ router.get("/liveness", monitoringController.getLiveness);
 
 /**
  * @swagger
- * /monitoring/alerts:
+ * /api/v1/monitoring/alerts:
  *   post:
  *     summary: Receive alerts from AlertManager
  *     tags: [Monitoring]
@@ -125,26 +127,52 @@ router.get("/liveness", monitoringController.getLiveness);
  *         description: Alert received and processed
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  */
-router.post("/alerts", monitoringController.handleAlert);
+router.post("/alerts", requireAuth, requireRole(["SUPER_ADMIN", "MAINTENANCE_ADMIN"]), monitoringController.handleAlert);
 
 /**
  * @swagger
- * /monitoring/simulate-error:
+ * /api/v1/monitoring/simulate-error:
  *   get:
  *     summary: Simulate random errors (for testing)
  *     tags: [Monitoring]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       400:
  *         description: Bad Request Error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
  *       500:
  *         description: Internal Server Error
  *       503:
  *         description: Service Unavailable
  */
-router.get("/simulate-error", monitoringController.simulateError);
+router.get("/simulate-error", requireAuth, requireRole(["SUPER_ADMIN", "MAINTENANCE_ADMIN"]), monitoringController.simulateError);
 
-router.get("/trigger-gc", async (req, res) => {
+/**
+ * @swagger
+ * /api/v1/monitoring/trigger-gc:
+ *   get:
+ *     summary: Trigger garbage collection (for testing)
+ *     tags: [Monitoring]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: GC triggered successfully
+ *       400:
+ *         description: GC not exposed
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ */
+router.get("/trigger-gc", requireAuth, requireRole(["SUPER_ADMIN", "MAINTENANCE_ADMIN"]), async (req, res) => {
   if (global.gc) {
     global.gc();
     res.json({ message: "GC triggered" });
@@ -153,7 +181,23 @@ router.get("/trigger-gc", async (req, res) => {
   }
 });
 
-router.get("/simulate-memory-leak", (req, res) => {
+/**
+ * @swagger
+ * /api/v1/monitoring/simulate-memory-leak:
+ *   get:
+ *     summary: Simulate memory leak (for testing)
+ *     tags: [Monitoring]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Memory leak simulated
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ */
+router.get("/simulate-memory-leak", requireAuth, requireRole(["SUPER_ADMIN", "MAINTENANCE_ADMIN"]), (req, res) => {
   const arr: any[] = [];
   for (let i = 0; i < 1000000; i++) {
     arr.push(new Array(1000).fill('test'));

@@ -22,7 +22,7 @@ const authController = new AuthController(authService);
 
 /**
  * @swagger
- * /auth/signup:
+ * /api/v1/auth/signup:
  *   post:
  *     summary: Register a new user
  *     tags: [Auth]
@@ -59,7 +59,7 @@ router.post("/signup", validateRequest(signupSchema), authController.signup);
 
 /**
  * @swagger
- * /auth/login:
+ * /api/v1/auth/login:
  *   post:
  *     summary: Login user
  *     tags: [Auth]
@@ -98,7 +98,7 @@ router.post("/login", validateRequest(loginSchema), authController.login);
 
 /**
  * @swagger
- * /auth/refresh:
+ * /api/v1/auth/refresh:
  *   post:
  *     summary: Refresh access token
  *     tags: [Auth]
@@ -123,7 +123,7 @@ router.post("/refresh", authController.refresh);
 
 /**
  * @swagger
- * /auth/logout:
+ * /api/v1/auth/logout:
  *   post:
  *     summary: Logout user
  *     tags: [Auth]
@@ -139,7 +139,7 @@ router.post("/logout", requireAuth, authController.logout);
 
 /**
  * @swagger
- * /auth/verify-email/{token}:
+ * /api/v1/auth/verify-email/{token}:
  *   get:
  *     summary: Verify email address
  *     tags: [Auth]
@@ -162,7 +162,7 @@ router.get("/verify-email/:token", validateRequest(verifyEmailSchema), authContr
 
 /**
  * @swagger
- * /auth/send-email-verification:
+ * /api/v1/auth/send-email-verification:
  *   post:
  *     summary: Resend verification email
  *     tags: [Auth]
@@ -193,7 +193,7 @@ router.post(
 
 /**
  * @swagger
- * /auth/forgot-password:
+ * /api/v1/auth/forgot-password:
  *   post:
  *     summary: Request password reset
  *     tags: [Auth]
@@ -217,7 +217,7 @@ router.post("/forgot-password", validateRequest(forgotPasswordSchema), authContr
 
 /**
  * @swagger
- * /auth/reset-password/{token}:
+ * /api/v1/auth/reset-password/{token}:
  *   post:
  *     summary: Reset password
  *     tags: [Auth]

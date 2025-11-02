@@ -237,7 +237,7 @@ router.use(requireAuth);
 
 /**
  * @swagger
- * /requests:
+ * /api/v1/requests:
  *   post:
  *     summary: Create a new maintenance request
  *     tags: [Requests]
@@ -307,7 +307,7 @@ router.post(
 
 /**
  * @swagger
- * /requests/with-files:
+ * /api/v1/requests/with-files:
  *   post:
  *     summary: Create a new maintenance request with file attachments
  *     tags: [Requests]
@@ -503,7 +503,7 @@ router.post(
 
 /**
  * @swagger
- * /requests:
+ * /api/v1/requests:
  *   get:
  *     summary: Get all maintenance requests with filtering and pagination
  *     tags: [Requests]
@@ -612,7 +612,7 @@ router.get(
 
 /**
  * @swagger
- * /requests/{id}:
+ * /api/v1/requests/{id}:
  *   get:
  *     summary: Get a maintenance request by ID
  *     tags: [Requests]
@@ -648,7 +648,7 @@ router.get(
 
 /**
  * @swagger
- * /requests/{id}:
+ * /api/v1/requests/{id}:
  *   put:
  *     summary: Update a maintenance request
  *     tags: [Requests]
@@ -729,7 +729,7 @@ router.put(
 
 /**
  * @swagger
- * /requests/{id}:
+ * /api/v1/requests/{id}:
  *   delete:
  *     summary: Delete a maintenance request
  *     tags: [Requests]
@@ -760,7 +760,7 @@ router.delete(
 
 /**
  * @swagger
- * /requests/{id}/comments:
+ * /api/v1/requests/{id}/comments:
  *   post:
  *     summary: Add a comment to a maintenance request
  *     tags: [Requests]
@@ -813,7 +813,7 @@ router.post(
 
 /**
  * @swagger
- * /requests/{id}/status:
+ * /api/v1/requests/{id}/status:
  *   patch:
  *     summary: Update request status
  *     tags: [Requests]
@@ -865,7 +865,7 @@ router.patch(
 
 /**
  * @swagger
- * /requests/{id}/assign:
+ * /api/v1/requests/{id}/assign:
  *   post:
  *     summary: Assign request to a technician (Admin only)
  *     tags: [Requests]
@@ -918,7 +918,7 @@ router.post(
 
 /**
  * @swagger
- * /requests/{id}/self-assign:
+ * /api/v1/requests/{id}/self-assign:
  *   post:
  *     summary: Self-assign request (Technician only)
  *     tags: [Requests]

@@ -17,7 +17,7 @@ const router = Router();
 
 /**
  * @swagger
- * /categories:
+ * /api/v1/categories:
  *   get:
  *     summary: Get all active categories
  *     tags: [Categories]
@@ -79,7 +79,7 @@ router.get(
 
 /**
  * @swagger
- * /categories/{id}:
+ * /api/v1/categories/{id}:
  *   get:
  *     summary: Get category by ID
  *     tags: [Categories]

@@ -51,7 +51,7 @@ router.use(requireAuth);
 
 /**
  * @swagger
- * /users:
+ * /api/v1/users:
  *   get:
  *     summary: Get all users (Admin only)
  *     tags: [Users]
@@ -80,7 +80,7 @@ router.get(
 
 /**
  * @swagger
- * /users/{id}:
+ * /api/v1/users/{id}:
  *   get:
  *     summary: Get user by ID
  *     tags: [Users]
@@ -111,7 +111,7 @@ router.get(
 
 /**
  * @swagger
- * /users:
+ * /api/v1/users:
  *   post:
  *     summary: Create new user (Admin only)
  *     tags: [Users]
@@ -158,7 +158,7 @@ router.post(
 
 /**
  * @swagger
- * /users/{id}:
+ * /api/v1/users/{id}:
  *   patch:
  *     summary: Update user (Admin only)
  *     tags: [Users]
@@ -206,7 +206,7 @@ router.patch(
 
 /**
  * @swagger
- * /users/{id}:
+ * /api/v1/users/{id}:
  *   delete:
  *     summary: Delete user (Admin only)
  *     tags: [Users]

@@ -28,7 +28,7 @@ router.use(requireAuth);
 
 /**
  * @swagger
- * /building-configs:
+ * /api/v1/building-configs:
  *   post:
  *     summary: Create a new building configuration
  *     tags: [Building Configurations]
@@ -78,7 +78,7 @@ router.post(
 
 /**
  * @swagger
- * /building-configs:
+ * /api/v1/building-configs:
  *   get:
  *     summary: Get all building configurations
  *     tags: [Building Configurations]
@@ -97,7 +97,7 @@ router.get(
 
 /**
  * @swagger
- * /building-configs/statistics:
+ * /api/v1/building-configs/statistics:
  *   get:
  *     summary: Get building statistics
  *     tags: [Building Configurations]
@@ -122,7 +122,7 @@ router.get(
 
 /**
  * @swagger
- * /building-configs/{buildingName}:
+ * /api/v1/building-configs/{buildingName}:
  *   get:
  *     summary: Get building configuration by name
  *     tags: [Building Configurations]
@@ -150,7 +150,7 @@ router.get(
 
 /**
  * @swagger
- * /building-configs/{buildingName}:
+ * /api/v1/building-configs/{buildingName}:
  *   put:
  *     summary: Update building configuration
  *     tags: [Building Configurations]
@@ -206,7 +206,7 @@ router.put(
 
 /**
  * @swagger
- * /building-configs/{buildingName}:
+ * /api/v1/building-configs/{buildingName}:
  *   delete:
  *     summary: Delete building configuration
  *     tags: [Building Configurations]
@@ -239,7 +239,7 @@ router.delete(
 
 /**
  * @swagger
- * /building-configs/{buildingName}/next-identifier:
+ * /api/v1/building-configs/{buildingName}/next-identifier:
  *   get:
  *     summary: Get next available identifier for a building
  *     tags: [Building Configurations]
@@ -274,7 +274,7 @@ router.get(
 
 /**
  * @swagger
- * /building-configs/{buildingName}/reset-sequence:
+ * /api/v1/building-configs/{buildingName}/reset-sequence:
  *   post:
  *     summary: Reset building sequence
  *     tags: [Building Configurations]

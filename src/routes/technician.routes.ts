@@ -69,7 +69,7 @@ router.use(requireAuth);
 
 /**
  * @swagger
- * /technicians:
+ * /api/v1/technicians:
  *   get:
  *     summary: Get all technicians (Admin read access)
  *     tags: [Technicians]
@@ -113,7 +113,7 @@ router.get(
 
 /**
  * @swagger
- * /technicians/{id}:
+ * /api/v1/technicians/{id}:
  *   get:
  *     summary: Get technician by ID (Admin read access)
  *     tags: [Technicians]

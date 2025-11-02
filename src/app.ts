@@ -48,8 +48,8 @@ const setupMiddleware = (app: express.Application) => {
   app.use(metricsMiddleware);
 
   // Rate Limiting
-  app.use("/api/auth", authLimiter);
-  app.use("/api", apiLimiter);
+  app.use("/api/v1/auth", authLimiter);
+  app.use("/api/v1", apiLimiter);
 };
 
 setupMiddleware(app);
@@ -69,19 +69,19 @@ app.get("/health", (req, res) => {
   });
 });
 
-// API Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/categories", categoryRoutes);
-app.use("/api/requests", requestRoutes);
-app.use("/api/technicians", technicianRoutes);
-app.use("/api/super-admin", superAdminRoutes);
-app.use("/api/building-configs", buildingConfigRoutes);
-app.use("/api/files", fileRoutes);
-app.use("/api/fcm", fcmRoutes);
+// API v1 Routes - Consistent RESTful Design
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/categories", categoryRoutes);
+app.use("/api/v1/maintenance-requests", requestRoutes);
+app.use("/api/v1/technicians", technicianRoutes);
+app.use("/api/v1/administrators", superAdminRoutes);
+app.use("/api/v1/buildings", buildingConfigRoutes);
+app.use("/api/v1/files", fileRoutes);
+app.use("/api/v1/notifications", fcmRoutes);
 
 // Monitoring Routes (consolidated - removed duplicate)
-app.use("/api/monitoring", monitoringRoutes);
+app.use("/api/v1/monitoring", monitoringRoutes);
 
 // Swagger Documentation
 const swaggerOptions = {
@@ -94,9 +94,15 @@ const swaggerOptions = {
     showExtensions: true,
     showCommonExtensions: true,
     tryItOutEnabled: true,
+    servers: [
+      {
+        url: `http://localhost:${ENV.PORT}/api/v1`,
+        description: "Development server - API v1"
+      }
+    ]
   },
   customCss: ".swagger-ui .topbar { display: none }",
-  customSiteTitle: "Express TypeScript API Documentation",
+  customSiteTitle: "BASMA Maintenance Platform API v1 Documentation",
 };
 
 app.use("/api-docs", swaggerUi.serve);

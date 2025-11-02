@@ -23,7 +23,7 @@ const router = Router();
 
 /**
  * @swagger
- * /api/fcm/register:
+ * /api/v1/fcm/register:
  *   post:
  *     summary: Register device for push notifications
  *     tags: [FCM]
@@ -69,7 +69,7 @@ router.post(
 
 /**
  * @swagger
- * /api/fcm/subscribe:
+ * /api/v1/fcm/subscribe:
  *   post:
  *     summary: Subscribe to a notification topic
  *     tags: [FCM]
@@ -108,7 +108,7 @@ router.post(
 
 /**
  * @swagger
- * /api/fcm/unsubscribe:
+ * /api/v1/fcm/unsubscribe:
  *   post:
  *     summary: Unsubscribe from a notification topic
  *     tags: [FCM]
@@ -147,7 +147,7 @@ router.post(
 
 /**
  * @swagger
- * /api/fcm/unregister:
+ * /api/v1/fcm/unregister:
  *   delete:
  *     summary: Unregister device (on logout)
  *     tags: [FCM]
@@ -182,7 +182,7 @@ router.delete(
 
 /**
  * @swagger
- * /api/fcm/subscriptions:
+ * /api/v1/fcm/subscriptions:
  *   get:
  *     summary: Get user's active device subscriptions
  *     tags: [FCM]
@@ -202,7 +202,7 @@ router.get(
 
 /**
  * @swagger
- * /api/fcm/test/send:
+ * /api/v1/fcm/test/send:
  *   post:
  *     summary: Send test notification (development only)
  *     tags: [FCM]
@@ -248,7 +248,7 @@ router.post(
 
 /**
  * @swagger
- * /api/fcm/announcement:
+ * /api/v1/fcm/announcement:
  *   post:
  *     summary: Send system-wide announcement (admin only)
  *     tags: [FCM]

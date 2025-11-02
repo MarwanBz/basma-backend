@@ -280,6 +280,89 @@ router.post(
 
 /**
  * @swagger
+ * /api/v1/files/my-files:
+ *   get:
+ *     summary: Get current user's files
+ *     tags: [Files]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, updatedAt, fileSize, originalName]
+ *           default: createdAt
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *       - in: query
+ *         name: entityType
+ *         schema:
+ *           type: string
+ *           enum: [MAINTENANCE_REQUEST, REQUEST_COMMENT, USER_PROFILE, BUILDING_CONFIG]
+ *       - in: query
+ *         name: mimeType
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *           maxLength: 255
+ *     responses:
+ *       200:
+ *         description: User files retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/FileAttachment'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ *       401:
+ *         description: Unauthorized
+ */
+router.get(
+  '/my-files',
+  validateRequest(getUserFilesSchema, 'query'),
+  cache({ duration: 60 }), // Cache for 1 minute
+  fileController.getUserFiles
+);
+
+/**
+ * @swagger
  * /api/v1/files/{id}:
  *   get:
  *     summary: Get file metadata by ID
@@ -657,89 +740,6 @@ router.get(
   validateRequest(getEntityFilesSchema, 'query'),
   cache({ duration: 120 }), // Cache for 2 minutes
   fileController.getEntityFiles
-);
-
-/**
- * @swagger
- * /api/v1/files/my-files:
- *   get:
- *     summary: Get current user's files
- *     tags: [Files]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 10
- *       - in: query
- *         name: sortBy
- *         schema:
- *           type: string
- *           enum: [createdAt, updatedAt, fileSize, originalName]
- *           default: createdAt
- *       - in: query
- *         name: sortOrder
- *         schema:
- *           type: string
- *           enum: [asc, desc]
- *           default: desc
- *       - in: query
- *         name: entityType
- *         schema:
- *           type: string
- *           enum: [MAINTENANCE_REQUEST, REQUEST_COMMENT, USER_PROFILE, BUILDING_CONFIG]
- *       - in: query
- *         name: mimeType
- *         schema:
- *           type: string
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *           maxLength: 255
- *     responses:
- *       200:
- *         description: User files retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/FileAttachment'
- *                 pagination:
- *                   type: object
- *                   properties:
- *                     page:
- *                       type: integer
- *                     limit:
- *                       type: integer
- *                     total:
- *                       type: integer
- *                     totalPages:
- *                       type: integer
- *       401:
- *         description: Unauthorized
- */
-router.get(
-  '/my-files',
-  validateRequest(getUserFilesSchema, 'query'),
-  cache({ duration: 60 }), // Cache for 1 minute
-  fileController.getUserFiles
 );
 
 export default router;
