@@ -37,7 +37,8 @@ const setupMiddleware = (app: express.Application) => {
   // Security
   app.use(requestId);
   setupSecurityHeaders(app as express.Express);
-  app.use(cors({ origin: ENV.FRONTEND_URL, credentials: true }));
+  app.options("*", cors()); // enable pre-flight requests
+  app.use(cors({ origin: ["http://localhost:3000", "https://basma-admin-dashboard.vercel.app"], credentials: true }));
 
   // Performance
   app.use(compressionMiddleware);
