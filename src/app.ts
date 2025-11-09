@@ -5,6 +5,7 @@ import { ErrorMonitoringService } from "@/services/errorMonitoring.service";
 import { apiLimiter } from "@/middleware/rateLimiter";
 import { authLimiter } from "@/middleware/rateLimiter";
 import authRoutes from "@/routes/auth.routes";
+import buildingConfigRoutes from "@/routes/buildingConfig.routes";
 import { cache } from "@/middleware/cacheMiddleware";
 import categoryRoutes from "@/routes/category.routes";
 import { compressionMiddleware } from "@/middleware/performanceMiddleware";
@@ -12,7 +13,6 @@ import cors from "cors";
 import { errorHandler } from "@/middleware/errorHandler";
 import express from "express";
 import fcmRoutes from "@/routes/fcm.routes";
-import fileRoutes from "@/routes/file.routes";
 import { loggingMiddleware } from "@/middleware/loggingMiddleware";
 import { metricsMiddleware } from "@/middleware/monitoringMiddleware";
 import monitoringRoutes from "@/routes/monitoring.routes";
@@ -21,11 +21,13 @@ import { requestId } from "@/middleware/requestId";
 import requestRoutes from "@/routes/request.routes";
 import { setupSecurityHeaders } from "@/middleware/securityHeaders";
 import { specs } from "./docs/swagger";
+// DEPRECATED: Old file routes - replaced by new storage service
+// import fileRoutes from "@/routes/file.routes";
+import storageRoutes from "@/routes/storage.routes";
 import superAdminRoutes from "@/routes/super-admin.routes";
 import swaggerUi from "swagger-ui-express";
 import technicianRoutes from "@/routes/technician.routes";
 import userRoutes from "@/routes/user.routes";
-import buildingConfigRoutes from "@/routes/buildingConfig.routes";
 
 const app = express();
 
@@ -77,7 +79,9 @@ app.use("/api/v1/maintenance-requests", requestRoutes);
 app.use("/api/v1/technicians", technicianRoutes);
 app.use("/api/v1/administrators", superAdminRoutes);
 app.use("/api/v1/buildings", buildingConfigRoutes);
-app.use("/api/v1/files", fileRoutes);
+// DEPRECATED: Old file routes - replaced by new storage service
+// app.use("/api/v1/files", fileRoutes);
+app.use("/api/v1/storage", storageRoutes);
 app.use("/api/v1/notifications", fcmRoutes);
 
 // Monitoring Routes (consolidated - removed duplicate)
@@ -97,9 +101,9 @@ const swaggerOptions = {
     servers: [
       {
         url: `http://localhost:${ENV.PORT}/api/v1`,
-        description: "Development server - API v1"
-      }
-    ]
+        description: "Development server - API v1",
+      },
+    ],
   },
   customCss: ".swagger-ui .topbar { display: none }",
   customSiteTitle: "BASMA Maintenance Platform API v1 Documentation",
