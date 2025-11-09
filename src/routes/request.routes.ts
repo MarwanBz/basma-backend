@@ -16,15 +16,19 @@ import { RequestService } from "@/services/request.service";
 import { Router } from "express";
 import { cache } from "@/middleware/cacheMiddleware";
 import { validateRequest } from "@/middleware/validateRequest";
-import { FileController } from "@/controllers/file.controller";
-import { FileService } from "@/services/file.service";
-import { FileConfiguration } from "@/types/file.types";
+
+// DEPRECATED: Old file service - replaced by new storage service
+// import { FileController } from "@/controllers/file.controller";
+// import { FileService } from "@/services/file.service";
+// import { FileConfiguration } from "@/types/file.types";
 
 const router = Router();
 const requestService = new RequestService();
 const requestController = new RequestController(requestService);
 
-// Initialize File Service for integrated request creation with files
+// DEPRECATED: Old file service initialization - replaced by new storage service
+// See: src/routes/storage.routes.ts for the new implementation
+/*
 const fileConfig: FileConfiguration = {
   storage: {
     provider: 'hetzner',
@@ -78,6 +82,7 @@ const fileConfig: FileConfiguration = {
 
 const fileService = new FileService(fileConfig);
 const fileController = new FileController(fileService);
+*/
 
 /**
  * @swagger
@@ -306,200 +311,22 @@ router.post(
 );
 
 /**
- * @swagger
- * /api/v1/requests/with-files:
- *   post:
- *     summary: Create a new maintenance request with file attachments
- *     tags: [Requests]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             required:
- *               - title
- *               - description
- *               - categoryId
- *               - location
- *             properties:
- *               title:
- *                 type: string
- *                 minLength: 3
- *                 maxLength: 200
- *                 description: Request title
- *               description:
- *                 type: string
- *                 minLength: 10
- *                 maxLength: 5000
- *                 description: Detailed description of the issue
- *               categoryId:
- *                 type: integer
- *                 description: Category ID
- *               location:
- *                 type: string
- *                 minLength: 2
- *                 maxLength: 100
- *                 description: General location
- *               building:
- *                 type: string
- *                 minLength: 2
- *                 maxLength: 100
- *                 description: Building identifier
- *               specificLocation:
- *                 type: string
- *                 minLength: 2
- *                 maxLength: 100
- *                 description: Specific location details
- *               priority:
- *                 type: string
- *                 enum: [LOW, MEDIUM, HIGH, URGENT]
- *                 default: MEDIUM
- *                 description: Request priority level
- *               estimatedCost:
- *                 type: number
- *                 format: decimal
- *                 description: Estimated cost for repairs
- *               scheduledDate:
- *                 type: string
- *                 format: date-time
- *                 description: Preferred scheduled date
- *               files:
- *                 type: array
- *                 items:
- *                   type: string
- *                   format: binary
- *                 maxItems: 10
- *                 description: Files to attach to the request (photos, documents, etc.)
- *     responses:
- *       201:
- *         description: Request created successfully with files attached
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *                 data:
- *                   type: object
- *                   properties:
- *                     request:
- *                       $ref: '#/components/schemas/MaintenanceRequest'
- *                     files:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           id:
- *                             type: string
- *                             format: uuid
- *                           originalName:
- *                             type: string
- *                           fileName:
- *                             type: string
- *                           fileSize:
- *                             type: integer
- *                           mimeType:
- *                             type: string
- *                           url:
- *                             type: string
- *                           thumbnailUrl:
- *                             type: string
- *                             nullable: true
- *       400:
- *         description: Bad request - Invalid input or file validation failed
- *       401:
- *         description: Unauthorized
- *       413:
- *         description: Payload Too Large - Files exceed size limits
+ * DEPRECATED: This route used the old file service and has been disabled.
+ * To create requests with files, use:
+ * 1. POST /api/v1/requests to create the request
+ * 2. POST /api/v1/storage/upload to upload files separately
+ *
+ * Future enhancement: Integrate new storage service with request creation
  */
+/*
 router.post(
   "/with-files",
   FileController.uploadMiddleware,
   async (req: any, res: any, next: any) => {
-    // Extract form data
-    const requestData = {
-      title: req.body.title,
-      description: req.body.description,
-      categoryId: parseInt(req.body.categoryId),
-      location: req.body.location,
-      building: req.body.building,
-      specificLocation: req.body.specificLocation,
-      priority: req.body.priority || 'MEDIUM',
-      estimatedCost: req.body.estimatedCost ? parseFloat(req.body.estimatedCost) : undefined,
-      scheduledDate: req.body.scheduledDate ? new Date(req.body.scheduledDate) : undefined
-    };
-
-    const files = req.files as Express.Multer.File[];
-
-    try {
-      // Step 1: Create the maintenance request
-      const request = await requestController.createRequest(requestData, req.user);
-
-      // Step 2: Upload files if any were provided
-      let uploadedFiles = [];
-      let uploadErrors = [];
-
-      if (files && files.length > 0) {
-        const fileContext = {
-          userId: req.user.userId,
-          userRole: req.user.role,
-          ip: req.ip || req.connection.remoteAddress || 'unknown',
-          userAgent: req.get('User-Agent'),
-          operation: 'upload' as const,
-          entityId: request.id,
-          entityType: 'MAINTENANCE_REQUEST' as const,
-          permissions: {
-            canUpload: true,
-            canDownload: true,
-            canDelete: ['SUPER_ADMIN', 'MAINTENANCE_ADMIN', 'BASMA_ADMIN', 'ADMIN'].includes(req.user.role),
-            canViewMetadata: true,
-            canManagePublic: ['SUPER_ADMIN', 'MAINTENANCE_ADMIN', 'BASMA_ADMIN', 'ADMIN'].includes(req.user.role),
-            canBypassLimits: ['SUPER_ADMIN'].includes(req.user.role)
-          },
-          riskLevel: req.user.createdAt && Date.now() - new Date(req.user.createdAt).getTime() < 86400000 ? 'high' : 'low',
-          securityFlags: []
-        };
-
-        const uploadRequest = {
-          files,
-          entityType: 'MAINTENANCE_REQUEST' as const,
-          entityId: request.id,
-          isPublic: false,
-          expiresAt: undefined
-        };
-
-        const uploadResult = await fileService.uploadFiles(files, uploadRequest, fileContext);
-        uploadedFiles = uploadResult.uploaded;
-        uploadErrors = uploadResult.errors;
-      }
-
-      // Step 3: Return combined result
-      res.status(201).json({
-        success: true,
-        message: `Request created successfully${uploadedFiles.length > 0 ? ` with ${uploadedFiles.length} file(s) attached` : ''}`,
-        data: {
-          request,
-          files: uploadedFiles,
-          uploadErrors: uploadErrors.length > 0 ? uploadErrors : undefined
-        },
-        metadata: {
-          operation: 'createRequestWithFiles',
-          timestamp: new Date(),
-          version: '1.0.0'
-        }
-      });
-
-    } catch (error) {
-      next(error);
-    }
+    // ... old implementation commented out
   }
 );
+*/
 
 /**
  * @swagger
