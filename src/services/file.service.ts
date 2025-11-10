@@ -33,6 +33,19 @@ export class FileService {
   }
 
   /**
+   * Convert Prisma file attachment to FileAttachmentMetadata
+   * Converts null values to undefined for optional fields
+   */
+  private convertToFileMetadata(file: any): FileAttachmentMetadata {
+    return {
+      ...file,
+      width: file.width ?? undefined,
+      height: file.height ?? undefined,
+      duration: file.duration ?? undefined,
+    };
+  }
+
+  /**
    * Upload a single file with entity relationship
    */
   async uploadFile(
@@ -122,11 +135,11 @@ export class FileService {
       // Step 5: Generate signed URL for immediate access
       const signedUrl = await this.storageService.getSignedUrl(fileKey, 3600);
 
-      return {
+      return this.convertToFileMetadata({
         ...fileAttachment,
         url: uploadResult.url,
         downloadUrl: signedUrl,
-      };
+      });
     } catch (error) {
       logger.error('File upload failed', {
         fileName: file.originalname,
@@ -254,7 +267,7 @@ export class FileService {
         downloadCount: file.downloadCount + 1,
       });
 
-      return { signedUrl, file };
+      return { signedUrl, file: this.convertToFileMetadata(file) };
     } catch (error) {
       logger.error('Failed to generate download URL', {
         fileId,
@@ -359,11 +372,11 @@ export class FileService {
         3600
       );
 
-      return {
+      return this.convertToFileMetadata({
         ...file,
         url: `${process.env.HETZNER_ENDPOINT_URL}/${process.env.HETZNER_BUCKET_NAME}/${file.filePath}`,
         downloadUrl: signedUrl,
-      };
+      });
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -399,19 +412,29 @@ export class FileService {
           processingStatus: filters.processingStatus,
         }),
         ...(filters?.isPublic !== undefined && { isPublic: filters.isPublic }),
-        ...(filters?.dateFrom && {
-          createdAt: { gte: filters.dateFrom },
-        }),
-        ...(filters?.dateTo && {
-          createdAt: { ...where.createdAt, lte: filters.dateTo },
-        }),
-        ...(filters?.minSize && {
-          fileSize: { gte: filters.minSize },
-        }),
-        ...(filters?.maxSize && {
-          fileSize: { ...where.fileSize, lte: filters.maxSize },
-        }),
       };
+
+      // Handle date range filters
+      if (filters?.dateFrom || filters?.dateTo) {
+        where.createdAt = {};
+        if (filters.dateFrom) {
+          where.createdAt.gte = filters.dateFrom;
+        }
+        if (filters.dateTo) {
+          where.createdAt.lte = filters.dateTo;
+        }
+      }
+
+      // Handle file size range filters
+      if (filters?.minSize || filters?.maxSize) {
+        where.fileSize = {};
+        if (filters.minSize) {
+          where.fileSize.gte = filters.minSize;
+        }
+        if (filters.maxSize) {
+          where.fileSize.lte = filters.maxSize;
+        }
+      }
 
       const [files, total] = await Promise.all([
         prisma.file_attachment.findMany({
@@ -434,7 +457,7 @@ export class FileService {
       ]);
 
       return {
-        files,
+        files: files.map(file => this.convertToFileMetadata(file)),
         pagination: {
           page,
           limit,
@@ -478,19 +501,29 @@ export class FileService {
           processingStatus: filters.processingStatus,
         }),
         ...(filters?.isPublic !== undefined && { isPublic: filters.isPublic }),
-        ...(filters?.dateFrom && {
-          createdAt: { gte: filters.dateFrom },
-        }),
-        ...(filters?.dateTo && {
-          createdAt: { ...where.createdAt, lte: filters.dateTo },
-        }),
-        ...(filters?.minSize && {
-          fileSize: { gte: filters.minSize },
-        }),
-        ...(filters?.maxSize && {
-          fileSize: { ...where.fileSize, lte: filters.maxSize },
-        }),
       };
+
+      // Handle date range filters
+      if (filters?.dateFrom || filters?.dateTo) {
+        where.createdAt = {};
+        if (filters.dateFrom) {
+          where.createdAt.gte = filters.dateFrom;
+        }
+        if (filters.dateTo) {
+          where.createdAt.lte = filters.dateTo;
+        }
+      }
+
+      // Handle file size range filters
+      if (filters?.minSize || filters?.maxSize) {
+        where.fileSize = {};
+        if (filters.minSize) {
+          where.fileSize.gte = filters.minSize;
+        }
+        if (filters.maxSize) {
+          where.fileSize.lte = filters.maxSize;
+        }
+      }
 
       const [files, total] = await Promise.all([
         prisma.file_attachment.findMany({
@@ -513,7 +546,7 @@ export class FileService {
       ]);
 
       return {
-        files,
+        files: files.map(file => this.convertToFileMetadata(file)),
         pagination: {
           page,
           limit,
@@ -580,7 +613,7 @@ export class FileService {
       ]);
 
       return {
-        files,
+        files: files.map(file => this.convertToFileMetadata(file)),
         pagination: {
           page,
           limit,
@@ -637,13 +670,18 @@ export class FileService {
         ...(searchQuery.isPublic !== undefined && {
           isPublic: searchQuery.isPublic,
         }),
-        ...(searchQuery.dateFrom && {
-          createdAt: { gte: searchQuery.dateFrom },
-        }),
-        ...(searchQuery.dateTo && {
-          createdAt: { ...where.createdAt, lte: searchQuery.dateTo },
-        }),
       };
+
+      // Handle date range filters
+      if (searchQuery.dateFrom || searchQuery.dateTo) {
+        where.createdAt = {};
+        if (searchQuery.dateFrom) {
+          where.createdAt.gte = searchQuery.dateFrom;
+        }
+        if (searchQuery.dateTo) {
+          where.createdAt.lte = searchQuery.dateTo;
+        }
+      }
 
       const orderBy: any = {};
       if (searchQuery.sortBy) {
@@ -673,7 +711,7 @@ export class FileService {
       ]);
 
       return {
-        files,
+        files: files.map(file => this.convertToFileMetadata(file)),
         pagination: {
           page,
           limit,
@@ -731,7 +769,7 @@ export class FileService {
         updates,
       });
 
-      return file;
+      return this.convertToFileMetadata(file);
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
