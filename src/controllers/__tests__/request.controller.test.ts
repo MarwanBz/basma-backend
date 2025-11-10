@@ -31,7 +31,7 @@ describe("RequestController", () => {
 
   beforeEach(() => {
     requestController = new RequestController(mockRequestService as any);
-    mockNext = vi.fn();
+    mockNext = vi.fn() as any;
     mockRes = {
       status: vi.fn().mockReturnThis(),
       json: vi.fn().mockReturnThis(),
@@ -90,7 +90,7 @@ describe("RequestController", () => {
     it("should throw error when user is not authenticated", async () => {
       mockReq = {
         body: { title: "Test" },
-        user: null,
+        user: undefined,
       };
 
       await requestController.create(
@@ -167,7 +167,7 @@ describe("RequestController", () => {
     it("should throw error when user is not authenticated", async () => {
       mockReq = {
         query: {},
-        user: null,
+        user: undefined,
       };
 
       await requestController.getAll(

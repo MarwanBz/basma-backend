@@ -109,6 +109,7 @@ describe("RequestService", () => {
         priority: "MEDIUM" as const,
         categoryId: 999, // Invalid category
         location: "Main Entrance",
+        building: "Building A",
       };
 
       const userId = "user-123";
@@ -166,7 +167,7 @@ describe("RequestService", () => {
       };
 
       const userId = "user-123";
-      const mockRequests = [];
+      const mockRequests: any[] = [];
 
       mockPrisma.maintenance_request.findMany.mockResolvedValue(mockRequests);
       mockPrisma.maintenance_request.count.mockResolvedValue(0);

@@ -442,8 +442,8 @@ router.post(
       const request = await requestController.createRequest(requestData, req.user);
 
       // Step 2: Upload files if any were provided
-      let uploadedFiles = [];
-      let uploadErrors = [];
+      let uploadedFiles: any[] = [];
+      let uploadErrors: any[] = [];
 
       if (files && files.length > 0) {
         const fileContext = {
@@ -462,7 +462,7 @@ router.post(
             canManagePublic: ['SUPER_ADMIN', 'MAINTENANCE_ADMIN', 'BASMA_ADMIN', 'ADMIN'].includes(req.user.role),
             canBypassLimits: ['SUPER_ADMIN'].includes(req.user.role)
           },
-          riskLevel: req.user.createdAt && Date.now() - new Date(req.user.createdAt).getTime() < 86400000 ? 'high' : 'low',
+          riskLevel: (req.user.createdAt && Date.now() - new Date(req.user.createdAt).getTime() < 86400000 ? 'high' : 'low') as 'high' | 'low' | 'medium',
           securityFlags: []
         };
 

@@ -451,7 +451,7 @@ export class FcmService {
           appVersion: registration.appVersion,
           isActive: true,
           lastUsedAt: new Date(),
-        },
+        } as any,
       });
     } catch (error) {
       logger.error("❌ Failed to register device token", {

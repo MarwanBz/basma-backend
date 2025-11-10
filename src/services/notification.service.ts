@@ -319,8 +319,9 @@ export class NotificationService {
           action: `basma://request/${requestId}`,
         },
         android: {
-          priority:
-            priority === "URGENT" || priority === "HIGH" ? "high" : "normal",
+          priority: (
+            priority === "URGENT" || priority === "HIGH" ? "high" : "normal"
+          ) as "high" | "normal",
         },
       };
 

@@ -81,7 +81,15 @@ export class FileService {
 
     // Step 2: Generate file metadata
     const metadata: FileMetadata = {
-      ...validationResult.metadata,
+      originalName: validationResult.metadata.originalName || file.originalname,
+      fileName: validationResult.metadata.fileName || '',
+      fileSize: validationResult.metadata.fileSize || file.size,
+      mimeType: validationResult.metadata.mimeType || file.mimetype,
+      fileExtension: validationResult.metadata.fileExtension || file.originalname.split('.').pop() || '',
+      checksum: validationResult.metadata.checksum || '',
+      width: validationResult.metadata.width,
+      height: validationResult.metadata.height,
+      duration: validationResult.metadata.duration,
       entityType: request.entityType,
       entityId: request.entityId,
       uploadedById: context.userId,

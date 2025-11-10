@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import { FileService } from '@/services/file.service';
 import { BaseController } from '@/controllers/base.controller';
-import { FileSecurityContext, file_entity_type } from '@/types/file.types';
+import { FileSecurityContext, file_entity_type, file_processing_status } from '@/types/file.types';
 import { AppError } from '@/utils/appError';
 import { logger } from '@/config/logger';
 import { validateRequest } from '@/middleware/validateRequest';
@@ -361,7 +361,7 @@ export class FileController extends BaseController {
         limit: Math.min(parseInt(limit as string), 100), // Max 100 per page
         sortBy: sortBy as string,
         sortOrder: sortOrder as 'asc' | 'desc',
-        processingStatus: processingStatus as string,
+        processingStatus: processingStatus as file_processing_status,
         isPublic: isPublic === 'true',
         search: search as string,
         dateFrom: dateFrom ? new Date(dateFrom as string) : undefined,
@@ -432,7 +432,7 @@ export class FileController extends BaseController {
         sortOrder: sortOrder as 'asc' | 'desc',
         entityType: entityType as file_entity_type,
         mimeType: mimeType as string,
-        processingStatus: processingStatus as string,
+        processingStatus: processingStatus as file_processing_status,
         search: search as string,
         dateFrom: dateFrom ? new Date(dateFrom as string) : undefined,
         dateTo: dateTo ? new Date(dateTo as string) : undefined
