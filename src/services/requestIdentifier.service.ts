@@ -249,11 +249,7 @@ export class RequestIdentifierService {
               role: true,
             },
           },
-          _count: {
-            select: {
-              requests: true,
-            },
-          },
+          // Note: _count aggregation removed for compatibility
         },
       }),
       prisma.request_identifier.count({ where }),

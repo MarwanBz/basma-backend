@@ -323,7 +323,82 @@ router.post(
   "/with-files",
   FileController.uploadMiddleware,
   async (req: any, res: any, next: any) => {
-    // ... old implementation commented out
+    // Extract form data
+    const requestData = {
+      title: req.body.title,
+      description: req.body.description,
+      categoryId: parseInt(req.body.categoryId),
+      location: req.body.location,
+      building: req.body.building,
+      specificLocation: req.body.specificLocation,
+      priority: req.body.priority || 'MEDIUM',
+      estimatedCost: req.body.estimatedCost ? parseFloat(req.body.estimatedCost) : undefined,
+      scheduledDate: req.body.scheduledDate ? new Date(req.body.scheduledDate) : undefined
+    };
+
+    const files = req.files as Express.Multer.File[];
+
+    try {
+      // Step 1: Create the maintenance request
+      const request = await requestController.createRequest(requestData, req.user);
+
+      // Step 2: Upload files if any were provided
+      let uploadedFiles: any[] = [];
+      let uploadErrors: any[] = [];
+
+      if (files && files.length > 0) {
+        const fileContext = {
+          userId: req.user.userId,
+          userRole: req.user.role,
+          ip: req.ip || req.connection.remoteAddress || 'unknown',
+          userAgent: req.get('User-Agent'),
+          operation: 'upload' as const,
+          entityId: request.id,
+          entityType: 'MAINTENANCE_REQUEST' as const,
+          permissions: {
+            canUpload: true,
+            canDownload: true,
+            canDelete: ['SUPER_ADMIN', 'MAINTENANCE_ADMIN', 'BASMA_ADMIN', 'ADMIN'].includes(req.user.role),
+            canViewMetadata: true,
+            canManagePublic: ['SUPER_ADMIN', 'MAINTENANCE_ADMIN', 'BASMA_ADMIN', 'ADMIN'].includes(req.user.role),
+            canBypassLimits: ['SUPER_ADMIN'].includes(req.user.role)
+          },
+          riskLevel: (req.user.createdAt && Date.now() - new Date(req.user.createdAt).getTime() < 86400000 ? 'high' : 'low') as 'high' | 'low' | 'medium',
+          securityFlags: []
+        };
+
+        const uploadRequest = {
+          files,
+          entityType: 'MAINTENANCE_REQUEST' as const,
+          entityId: request.id,
+          isPublic: false,
+          expiresAt: undefined
+        };
+
+        const uploadResult = await fileService.uploadFiles(files, uploadRequest, fileContext);
+        uploadedFiles = uploadResult.uploaded;
+        uploadErrors = uploadResult.errors;
+      }
+
+      // Step 3: Return combined result
+      res.status(201).json({
+        success: true,
+        message: `Request created successfully${uploadedFiles.length > 0 ? ` with ${uploadedFiles.length} file(s) attached` : ''}`,
+        data: {
+          request,
+          files: uploadedFiles,
+          uploadErrors: uploadErrors.length > 0 ? uploadErrors : undefined
+        },
+        metadata: {
+          operation: 'createRequestWithFiles',
+          timestamp: new Date(),
+          version: '1.0.0'
+        }
+      });
+
+    } catch (error) {
+      next(error);
+    }
   }
 );
 */

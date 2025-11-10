@@ -5,7 +5,7 @@ import { MetricsService } from '@/services/metrics.service';
 import { singleton } from '@/decorators/singleton';
 
 export interface WebSocketMessage {
-  type: 'ping' | 'pong' | 'error' | 'connection';
+  type: 'ping' | 'pong' | 'error' | 'connection' | 'shutdown';
   data: unknown;
 }
 
@@ -42,6 +42,36 @@ export class WebSocketService {
       ws.on('message', (message: string) => {
         this.metricsService.recordWebsocketMessage('message', 'in');
       });
+    });
+  }
+
+  broadcast(message: WebSocketMessage): void {
+    if (!this.wss) {
+      return;
+    }
+
+    const messageString = JSON.stringify(message);
+
+    this.wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(messageString);
+        this.metricsService.recordWebsocketMessage('broadcast', 'out');
+      }
+    });
+  }
+
+  sendToClient(clientId: string, message: WebSocketMessage): void {
+    if (!this.wss) {
+      return;
+    }
+
+    const messageString = JSON.stringify(message);
+
+    this.wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN && (client as any).id === clientId) {
+        client.send(messageString);
+        this.metricsService.recordWebsocketMessage('unicast', 'out');
+      }
     });
   }
 
