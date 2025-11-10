@@ -21,8 +21,9 @@ import { requestId } from "@/middleware/requestId";
 import requestRoutes from "@/routes/request.routes";
 import { setupSecurityHeaders } from "@/middleware/securityHeaders";
 import { specs } from "./docs/swagger";
-// DEPRECATED: Old file routes - replaced by new storage service
-// import fileRoutes from "@/routes/file.routes";
+// New comprehensive file management routes
+import fileRoutes from "@/routes/file.routes";
+// DEPRECATED: Old simple storage route - replaced by new file service
 import storageRoutes from "@/routes/storage.routes";
 import superAdminRoutes from "@/routes/super-admin.routes";
 import swaggerUi from "swagger-ui-express";
@@ -80,8 +81,9 @@ app.use("/api/v1/maintenance-requests", requestRoutes);
 app.use("/api/v1/technicians", technicianRoutes);
 app.use("/api/v1/administrators", superAdminRoutes);
 app.use("/api/v1/buildings", buildingConfigRoutes);
-// DEPRECATED: Old file routes - replaced by new storage service
-// app.use("/api/v1/files", fileRoutes);
+// File management routes (comprehensive)
+app.use("/api/v1/files", fileRoutes);
+// DEPRECATED: Simple storage route (kept for backward compatibility)
 app.use("/api/v1/storage", storageRoutes);
 app.use("/api/v1/notifications", fcmRoutes);
 

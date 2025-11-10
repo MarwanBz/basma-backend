@@ -1,3 +1,23 @@
+/**
+ * DEPRECATED: This route is kept for backward compatibility only
+ * 
+ * Please use the new /api/v1/files routes instead:
+ * - POST /api/v1/files/upload - Single file upload
+ * - POST /api/v1/files/upload-multiple - Multiple file upload
+ * - GET /api/v1/files/:id/download - Download file
+ * - DELETE /api/v1/files/:id - Delete file
+ * - GET /api/v1/files/my-files - List user files
+ * - GET /api/v1/files/search - Search files
+ * 
+ * The new file service provides:
+ * - Database integration
+ * - Entity relationships
+ * - File validation
+ * - Access control
+ * - Download tracking
+ * - Search and filtering
+ */
+
 import { Router } from 'express';
 import multer from 'multer';
 import { FileUploadController } from '@/controllers/fileUpload.controller';

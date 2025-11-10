@@ -262,3 +262,37 @@ export interface FileAttachmentMetadata {
   downloadUrl?: string;
   thumbnailUrl?: string;
 }
+
+/**
+ * Filters for listing files
+ */
+export interface FileListFilters {
+  entityType?: file_entity_type;
+  entityId?: string;
+  mimeType?: string;
+  processingStatus?: file_processing_status;
+  isPublic?: boolean;
+  dateFrom?: Date;
+  dateTo?: Date;
+  minSize?: number;
+  maxSize?: number;
+}
+
+/**
+ * Search query parameters for file search
+ */
+export interface FileSearchQuery {
+  query?: string; // Search term for filename
+  entityType?: file_entity_type;
+  entityId?: string;
+  uploadedById?: string;
+  mimeType?: string;
+  category?: 'image' | 'video' | 'document' | 'audio' | 'archive';
+  isPublic?: boolean;
+  dateFrom?: Date;
+  dateTo?: Date;
+  sortBy?: 'createdAt' | 'updatedAt' | 'fileSize' | 'originalName' | 'downloadCount';
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+}

@@ -241,4 +241,122 @@ export class StorageService {
       throw new AppError("Failed to check file existence", 500);
     }
   }
+
+  /**
+   * List files in storage with optional prefix filtering
+   */
+  async listFiles(
+    prefix: string = "",
+    maxKeys: number = 1000
+  ): Promise<Array<{ key: string; size: number; lastModified: Date }>> {
+    try {
+      const { ListObjectsV2Command } = await import("@aws-sdk/client-s3");
+      const command = new ListObjectsV2Command({
+        Bucket: this.bucket,
+        Prefix: prefix,
+        MaxKeys: maxKeys,
+      });
+
+      const result = await this.s3Client.send(command);
+
+      const files =
+        result.Contents?.map((item) => ({
+          key: item.Key!,
+          size: item.Size || 0,
+          lastModified: item.LastModified || new Date(),
+        })) || [];
+
+      logger.info("Listed files from storage", {
+        prefix,
+        count: files.length,
+        bucket: this.bucket,
+      });
+
+      return files;
+    } catch (error) {
+      logger.error("Failed to list files", {
+        prefix,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+
+      throw new AppError("Failed to list files from storage", 500);
+    }
+  }
+
+  /**
+   * Copy a file within storage
+   */
+  async copyFile(sourceKey: string, destinationKey: string): Promise<void> {
+    const startTime = Date.now();
+
+    try {
+      const { CopyObjectCommand } = await import("@aws-sdk/client-s3");
+      const command = new CopyObjectCommand({
+        Bucket: this.bucket,
+        CopySource: `${this.bucket}/${sourceKey}`,
+        Key: destinationKey,
+      });
+
+      await this.s3Client.send(command);
+
+      logger.info("File copied successfully", {
+        sourceKey,
+        destinationKey,
+        duration: Date.now() - startTime,
+      });
+    } catch (error) {
+      logger.error("Failed to copy file", {
+        sourceKey,
+        destinationKey,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+
+      throw new AppError("Failed to copy file in storage", 500);
+    }
+  }
+
+  /**
+   * Get file metadata from storage
+   */
+  async getFileMetadata(key: string): Promise<{
+    contentType: string;
+    contentLength: number;
+    lastModified: Date;
+    etag?: string;
+    metadata?: Record<string, string>;
+  }> {
+    try {
+      const command = new HeadObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+      });
+
+      const result = await this.s3Client.send(command);
+
+      logger.debug("Retrieved file metadata", {
+        key,
+        contentType: result.ContentType,
+        contentLength: result.ContentLength,
+      });
+
+      return {
+        contentType: result.ContentType || "application/octet-stream",
+        contentLength: result.ContentLength || 0,
+        lastModified: result.LastModified || new Date(),
+        etag: result.ETag,
+        metadata: result.Metadata,
+      };
+    } catch (error) {
+      logger.error("Failed to get file metadata", {
+        key,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+
+      if (error instanceof Error && error.name === "NotFound") {
+        throw new AppError("File not found in storage", 404);
+      }
+
+      throw new AppError("Failed to get file metadata", 500);
+    }
+  }
 }
