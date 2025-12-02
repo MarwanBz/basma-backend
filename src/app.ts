@@ -12,7 +12,8 @@ import { compressionMiddleware } from "@/middleware/performanceMiddleware";
 import cors from "cors";
 import { errorHandler } from "@/middleware/errorHandler";
 import express from "express";
-import fcmRoutes from "@/routes/fcm.routes";
+// DEPRECATED: FCM notification routes - moved to src/deprecated/notifications/
+// import fcmRoutes from "@/routes/fcm.routes";
 import { loggingMiddleware } from "@/middleware/loggingMiddleware";
 import { metricsMiddleware } from "@/middleware/monitoringMiddleware";
 import monitoringRoutes from "@/routes/monitoring.routes";
@@ -40,7 +41,15 @@ const setupMiddleware = (app: express.Application) => {
   app.use(requestId);
   setupSecurityHeaders(app as express.Express);
   app.options("*", cors()); // enable pre-flight requests
-  app.use(cors({ origin: ["http://localhost:3000", "https://basma-admin-dashboard.vercel.app"], credentials: true }));
+  app.use(
+    cors({
+      origin: [
+        "http://localhost:3000",
+        "https://basma-admin-dashboard.vercel.app",
+      ],
+      credentials: true,
+    })
+  );
 
   // Performance
   app.use(compressionMiddleware);
@@ -83,7 +92,8 @@ app.use("/api/v1/buildings", buildingConfigRoutes);
 // DEPRECATED: Old file routes - replaced by new storage service
 // app.use("/api/v1/files", fileRoutes);
 app.use("/api/v1/storage", storageRoutes);
-app.use("/api/v1/notifications", fcmRoutes);
+// DEPRECATED: FCM notification routes - moved to src/deprecated/notifications/
+// app.use("/api/v1/notifications", fcmRoutes);
 
 // Monitoring Routes (consolidated - removed duplicate)
 app.use("/api/v1/monitoring", monitoringRoutes);

@@ -5,6 +5,9 @@ import { z } from "zod";
  * FCM Validation Schemas
  *
  * Validates incoming requests for FCM endpoints
+ * 
+ * @deprecated These validators have been deprecated and moved to the deprecated folder.
+ * All FCM notification functionality has been removed from the active codebase.
  */
 
 /**
@@ -111,3 +114,4 @@ export type SendTestNotificationInput = z.infer<
 export type SendAnnouncementInput = z.infer<
   typeof sendAnnouncementSchema
 >["body"];
+
