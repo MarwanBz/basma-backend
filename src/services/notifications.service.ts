@@ -1,10 +1,10 @@
-import { randomUUID } from "crypto";
-
+import { AppError } from "@/utils/appError";
+import { Message } from "firebase-admin/messaging";
+import { fcm_device_tokens_platform } from "@prisma/client";
 import { getMessagingClient } from "@/config/firebaseAdmin";
 import { logger } from "@/config/logger";
 import { prisma } from "@/config/database";
-import { AppError } from "@/utils/appError";
-import { fcm_device_tokens_platform } from "@prisma/client";
+import { randomUUID } from "crypto";
 
 type SaveTokenInput = {
   token: string;
@@ -38,9 +38,7 @@ type CreateNotificationInput = {
   data?: Record<string, string> | null;
 };
 
-const toPlatform = (
-  platform?: string | null
-): fcm_device_tokens_platform => {
+const toPlatform = (platform?: string | null): fcm_device_tokens_platform => {
   if (!platform) return "WEB";
   const upper = platform.toUpperCase();
   if (upper === "ANDROID" || upper === "IOS" || upper === "WEB") {
@@ -214,7 +212,7 @@ export const notificationService = {
     const { topic, title, body, data } = input;
     const messaging = getMessagingClient();
 
-    const message = {
+    const message: Message = {
       topic,
       notification: {
         title,
@@ -272,7 +270,9 @@ export const notificationService = {
           title,
           body,
           type: "topic",
-          data: data ? JSON.stringify({ ...data, topic }) : JSON.stringify({ topic }),
+          data: data
+            ? JSON.stringify({ ...data, topic })
+            : JSON.stringify({ topic }),
           createdAt: new Date(),
           isRead: false,
         })),
@@ -329,4 +329,3 @@ export const notificationService = {
     });
   },
 };
-
