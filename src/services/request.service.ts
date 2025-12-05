@@ -11,8 +11,7 @@ import {
 import { AppError } from "@/utils/appError";
 import { ErrorCode } from "@/utils/errorCodes";
 import { RequestIdentifierService } from "./requestIdentifier.service";
-// DEPRECATED: FCM notification service - moved to src/deprecated/notifications/
-// import { notificationService } from "./notification.service";
+import { notificationService } from "./notifications.service";
 import prisma from "@/config/database";
 
 export class RequestService {
@@ -523,6 +522,18 @@ export class RequestService {
       },
     });
 
+    const identifier = request.customIdentifier || request.id;
+    await notificationService.notifyAdmins({
+      title: `Request ${identifier} status changed`,
+      body: `${request.title} → ${newStatus}`,
+      type: "request_status",
+      data: {
+        requestId,
+        toStatus: newStatus,
+        fromStatus: currentStatus,
+      },
+    });
+
     // DEPRECATED: FCM notification service - moved to src/deprecated/notifications/
     // Send FCM notification for status change
     // notificationService
@@ -613,6 +624,18 @@ export class RequestService {
       select: { name: true },
     });
 
+    const identifier = request.customIdentifier || request.id;
+    const technicianName = technicianWithName?.name || "technician";
+    await notificationService.notifyAdmins({
+      title: `Request ${identifier} assigned`,
+      body: `${request.title} assigned to ${technicianName}`,
+      type: "assignment",
+      data: {
+        requestId,
+        assignedToId: data.assignedToId,
+      },
+    });
+
     // DEPRECATED: FCM notification service - moved to src/deprecated/notifications/
     // Send FCM notification for technician assignment
     // if (technicianWithName) {
@@ -677,6 +700,23 @@ export class RequestService {
         reason: "Self-assigned by technician",
         assignedById: technicianId,
         requestId,
+      },
+    });
+
+    const technician = await prisma.user.findUnique({
+      where: { id: technicianId },
+      select: { name: true },
+    });
+    const identifier = request.customIdentifier || request.id;
+    await notificationService.notifyAdmins({
+      title: `Request ${identifier} self-assigned`,
+      body: `${request.title} self-assigned by ${
+        technician?.name || "technician"
+      }`,
+      type: "assignment",
+      data: {
+        requestId,
+        assignedToId: technicianId,
       },
     });
 

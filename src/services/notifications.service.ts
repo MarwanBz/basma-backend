@@ -1,10 +1,18 @@
 import { AppError } from "@/utils/appError";
 import { Message } from "firebase-admin/messaging";
-import { fcm_device_tokens_platform } from "@prisma/client";
+import { fcm_device_tokens_platform, user_role } from "@prisma/client";
 import { getMessagingClient } from "@/config/firebaseAdmin";
 import { logger } from "@/config/logger";
 import { prisma } from "@/config/database";
 import { randomUUID } from "crypto";
+
+const ADMIN_TOPIC = process.env.FCM_ADMIN_TOPIC || "admin-updates";
+const ADMIN_ROLES: user_role[] = [
+  "SUPER_ADMIN",
+  "MAINTENANCE_ADMIN",
+  "BASMA_ADMIN",
+  "ADMIN",
+];
 
 type SaveTokenInput = {
   token: string;
@@ -48,6 +56,18 @@ const toPlatform = (platform?: string | null): fcm_device_tokens_platform => {
 };
 
 export const notificationService = {
+  getAdminTopic() {
+    return ADMIN_TOPIC;
+  },
+
+  async getAdminUserIds(): Promise<string[]> {
+    const admins = await prisma.user.findMany({
+      where: { role: { in: ADMIN_ROLES } },
+      select: { id: true },
+    });
+    return admins.map((a) => a.id);
+  },
+
   async subscribeAndStore(input: SaveTokenInput) {
     const { token, topic, userId } = input;
 
@@ -280,6 +300,73 @@ export const notificationService = {
     }
 
     return { messageId, fanoutCount: uniqueUserIds.length };
+  },
+
+  async notifyAdmins(input: {
+    title: string;
+    body: string;
+    type?: string | null;
+    data?: Record<string, string>;
+    skipPush?: boolean;
+  }) {
+    const { title, body, data, type, skipPush } = input;
+    const adminIds = await this.getAdminUserIds();
+
+    if (adminIds.length) {
+      await prisma.notifications.createMany({
+        data: adminIds.map((userId) => ({
+          id: randomUUID(),
+          userId,
+          title,
+          body,
+          type: type || "admin",
+          data: data ? JSON.stringify(data) : null,
+          createdAt: new Date(),
+          isRead: false,
+        })),
+      });
+    }
+
+    if (skipPush) {
+      return { pushSent: false, adminCount: adminIds.length };
+    }
+
+    const messaging = getMessagingClient();
+    const message: Message = {
+      topic: ADMIN_TOPIC,
+      notification: { title, body },
+      data: data || {},
+      android: {
+        notification: {
+          sound: "default",
+          priority: "high",
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: "default",
+            badge: 1,
+          },
+        },
+      },
+    };
+
+    try {
+      const messageId = await messaging.send(message);
+      logger.info("Admin notification dispatched", {
+        topic: ADMIN_TOPIC,
+        messageId,
+        adminCount: adminIds.length,
+      });
+      return { pushSent: true, adminCount: adminIds.length, messageId };
+    } catch (error) {
+      logger.error("Failed to send admin notification topic", {
+        topic: ADMIN_TOPIC,
+        error,
+      });
+      return { pushSent: false, adminCount: adminIds.length };
+    }
   },
 
   async listNotifications(userId: string, limit = 50) {
