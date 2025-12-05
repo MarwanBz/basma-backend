@@ -20,6 +20,7 @@ import monitoringRoutes from "@/routes/monitoring.routes";
 import { notFoundHandler } from "./middleware/notFound";
 import { requestId } from "@/middleware/requestId";
 import requestRoutes from "@/routes/request.routes";
+import notificationRoutes from "@/routes/notifications.routes";
 import { setupSecurityHeaders } from "@/middleware/securityHeaders";
 import { specs } from "./docs/swagger";
 // DEPRECATED: Old file routes - replaced by new storage service
@@ -89,6 +90,7 @@ app.use("/api/v1/maintenance-requests", requestRoutes);
 app.use("/api/v1/technicians", technicianRoutes);
 app.use("/api/v1/administrators", superAdminRoutes);
 app.use("/api/v1/buildings", buildingConfigRoutes);
+app.use("/api/v1/notifications", notificationRoutes);
 // DEPRECATED: Old file routes - replaced by new storage service
 // app.use("/api/v1/files", fileRoutes);
 app.use("/api/v1/storage", storageRoutes);
