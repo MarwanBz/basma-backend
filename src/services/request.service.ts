@@ -11,7 +11,8 @@ import {
 import { AppError } from "@/utils/appError";
 import { ErrorCode } from "@/utils/errorCodes";
 import { RequestIdentifierService } from "./requestIdentifier.service";
-import { notificationService } from "./notification.service";
+// DEPRECATED: FCM notification service - moved to src/deprecated/notifications/
+// import { notificationService } from "./notification.service";
 import prisma from "@/config/database";
 
 export class RequestService {
@@ -91,18 +92,19 @@ export class RequestService {
         },
       });
 
+      // DEPRECATED: FCM notification service - moved to src/deprecated/notifications/
       // Send FCM notification to maintenance admins about new request
-      notificationService
-        .notifyNewRequest(
-          request.id,
-          request.title,
-          request.priority,
-          request.building || undefined
-        )
-        .catch((error) => {
-          // Log error but don't fail the request
-          console.error("Failed to send new request notification:", error);
-        });
+      // notificationService
+      //   .notifyNewRequest(
+      //     request.id,
+      //     request.title,
+      //     request.priority,
+      //     request.building || undefined
+      //   )
+      //   .catch((error) => {
+      //     // Log error but don't fail the request
+      //     console.error("Failed to send new request notification:", error);
+      //   });
 
       return request;
     } catch (error) {
@@ -463,23 +465,24 @@ export class RequestService {
       },
     });
 
+    // DEPRECATED: FCM notification service - moved to src/deprecated/notifications/
     // Send FCM notification for new comment (skip for internal comments)
-    if (!data.isInternal) {
-      notificationService
-        .notifyNewComment(
-          requestId,
-          request.title,
-          comment.user.name,
-          comment.text,
-          request.requestedById,
-          request.assignedToId || undefined,
-          userId
-        )
-        .catch((error) => {
-          // Log error but don't fail the request
-          console.error("Failed to send comment notification:", error);
-        });
-    }
+    // if (!data.isInternal) {
+    //   notificationService
+    //     .notifyNewComment(
+    //       requestId,
+    //       request.title,
+    //       comment.user.name,
+    //       comment.text,
+    //       request.requestedById,
+    //       request.assignedToId || undefined,
+    //       userId
+    //     )
+    //     .catch((error) => {
+    //       // Log error but don't fail the request
+    //       console.error("Failed to send comment notification:", error);
+    //     });
+    // }
 
     return comment;
   }
@@ -520,19 +523,20 @@ export class RequestService {
       },
     });
 
+    // DEPRECATED: FCM notification service - moved to src/deprecated/notifications/
     // Send FCM notification for status change
-    notificationService
-      .notifyRequestStatusChange(
-        requestId,
-        request.title,
-        newStatus,
-        request.requestedById,
-        request.assignedToId || undefined
-      )
-      .catch((error) => {
-        // Log error but don't fail the request
-        console.error("Failed to send status change notification:", error);
-      });
+    // notificationService
+    //   .notifyRequestStatusChange(
+    //     requestId,
+    //     request.title,
+    //     newStatus,
+    //     request.requestedById,
+    //     request.assignedToId || undefined
+    //   )
+    //   .catch((error) => {
+    //     // Log error but don't fail the request
+    //     console.error("Failed to send status change notification:", error);
+    //   });
 
     return updatedRequest;
   }
@@ -609,21 +613,22 @@ export class RequestService {
       select: { name: true },
     });
 
+    // DEPRECATED: FCM notification service - moved to src/deprecated/notifications/
     // Send FCM notification for technician assignment
-    if (technicianWithName) {
-      notificationService
-        .notifyTechnicianAssigned(
-          requestId,
-          request.title,
-          data.assignedToId,
-          technicianWithName.name,
-          request.requestedById
-        )
-        .catch((error) => {
-          // Log error but don't fail the request
-          console.error("Failed to send assignment notification:", error);
-        });
-    }
+    // if (technicianWithName) {
+    //   notificationService
+    //     .notifyTechnicianAssigned(
+    //       requestId,
+    //       request.title,
+    //       data.assignedToId,
+    //       technicianWithName.name,
+    //       request.requestedById
+    //     )
+    //     .catch((error) => {
+    //       // Log error but don't fail the request
+    //       console.error("Failed to send assignment notification:", error);
+    //     });
+    // }
 
     return updatedRequest;
   }

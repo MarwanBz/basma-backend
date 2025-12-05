@@ -5,10 +5,10 @@ import {
   subscribeToTopicSchema,
   unregisterDeviceSchema,
   unsubscribeFromTopicSchema,
-} from "@/validators/fcm.validator";
+} from "../validators/fcm.validator";
 
 import { Router } from "express";
-import { fcmController } from "@/controllers/fcm.controller";
+import { fcmController } from "../controllers/fcm.controller";
 import { requireAuth } from "@/middleware/authMiddleware";
 import { validateRequest } from "@/middleware/validateRequest";
 
@@ -291,3 +291,4 @@ router.post(
 );
 
 export default router;
+
