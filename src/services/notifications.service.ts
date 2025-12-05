@@ -30,6 +30,14 @@ type RegisterDeviceInput = {
   appVersion?: string | null;
 };
 
+type CreateNotificationInput = {
+  userId: string;
+  title: string;
+  body: string;
+  type?: string | null;
+  data?: Record<string, string> | null;
+};
+
 const toPlatform = (
   platform?: string | null
 ): fcm_device_tokens_platform => {
@@ -236,7 +244,89 @@ export const notificationService = {
       messageId,
     });
 
-    return { messageId };
+    // Fan-out to subscribed users
+    const subscribers = await prisma.fcm_topic_subscriptions.findMany({
+      where: { topic },
+      select: {
+        fcm_device_tokens: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    const uniqueUserIds = Array.from(
+      new Set(
+        subscribers
+          .map((s) => s.fcm_device_tokens?.userId)
+          .filter((id): id is string => Boolean(id))
+      )
+    );
+
+    if (uniqueUserIds.length) {
+      await prisma.notifications.createMany({
+        data: uniqueUserIds.map((userId) => ({
+          id: randomUUID(),
+          userId,
+          title,
+          body,
+          type: "topic",
+          data: data ? JSON.stringify({ ...data, topic }) : JSON.stringify({ topic }),
+          createdAt: new Date(),
+          isRead: false,
+        })),
+      });
+    }
+
+    return { messageId, fanoutCount: uniqueUserIds.length };
+  },
+
+  async listNotifications(userId: string, limit = 50) {
+    return prisma.notifications.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        body: true,
+        type: true,
+        data: true,
+        isRead: true,
+        createdAt: true,
+      },
+    });
+  },
+
+  async markNotificationsRead(userId: string, ids: string[]) {
+    if (!ids.length) {
+      throw new AppError("No notification ids provided", 400);
+    }
+
+    await prisma.notifications.updateMany({
+      where: {
+        userId,
+        id: { in: ids },
+      },
+      data: {
+        isRead: true,
+      },
+    });
+  },
+
+  async createNotification(input: CreateNotificationInput) {
+    const { userId, title, body, type, data } = input;
+    await prisma.notifications.create({
+      data: {
+        id: randomUUID(),
+        userId,
+        title,
+        body,
+        type: type || null,
+        data: data ? JSON.stringify(data) : null,
+      },
+    });
   },
 };
 

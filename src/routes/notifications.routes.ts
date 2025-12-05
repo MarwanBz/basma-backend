@@ -7,6 +7,8 @@ import {
   registerDeviceSchema,
   sendTopicSchema,
   subscribeTopicSchema,
+  listHistorySchema,
+  markReadSchema,
   unregisterDeviceSchema,
   unsubscribeTopicSchema,
 } from "@/validators/notifications.validator";
@@ -45,6 +47,20 @@ router.get(
   "/subscriptions",
   requireAuth,
   notificationsController.listSubscriptions.bind(notificationsController)
+);
+
+router.get(
+  "/history",
+  requireAuth,
+  validateRequest(listHistorySchema, "query"),
+  notificationsController.listHistory.bind(notificationsController)
+);
+
+router.post(
+  "/mark-read",
+  requireAuth,
+  validateRequest(markReadSchema),
+  notificationsController.markRead.bind(notificationsController)
 );
 
 router.post(
