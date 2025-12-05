@@ -34,6 +34,7 @@ model user {
   commentsCreated          request_comment[]            @relation("CommentCreator")
   identifiersCreated       request_identifier[]         @relation("IdentifierCreator")
   statusChangesMade        request_status_history[]     @relation("StatusChanger")
+  notifications            notifications[]
 
   @@map("users")
 }
@@ -261,6 +262,22 @@ model fcm_topic_subscriptions {
 
   @@unique([tokenId, topic])
   @@index([topic])
+}
+
+model notifications {
+  id        String   @id
+  userId    String
+  title     String   @db.VarChar(200)
+  body      String   @db.Text
+  type      String?  @db.VarChar(100)
+  data      String?  @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  users user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("notifications")
 }
 
 enum user_role {

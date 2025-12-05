@@ -41,3 +41,16 @@ export const unregisterDeviceSchema = z.object({
   }),
 });
 
+export const listHistorySchema = z.object({
+  limit: z
+    .string()
+    .transform((v) => parseInt(v, 10))
+    .refine((v) => Number.isFinite(v) && v > 0 && v <= 200, "Invalid limit")
+    .optional(),
+});
+
+export const markReadSchema = z.object({
+  body: z.object({
+    ids: z.array(z.string().min(1)).min(1, "At least one id is required"),
+  }),
+});

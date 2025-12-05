@@ -131,6 +131,58 @@ export class NotificationsController {
     }
   }
 
+  async listHistory(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) throw new AppError("User not authenticated", 401);
+
+      const limitRaw = req.query?.limit;
+      const limit =
+        typeof limitRaw === "string" ? parseInt(limitRaw, 10) : undefined;
+      const safeLimit =
+        typeof limit === "number" && !Number.isNaN(limit) ? limit : 50;
+
+      const notifications = await notificationService.listNotifications(
+        userId,
+        safeLimit
+      );
+
+      res.status(200).json({
+        success: true,
+        data: notifications.map((n) => ({
+          ...n,
+          data: n.data ? JSON.parse(n.data) : null,
+        })),
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async markRead(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) throw new AppError("User not authenticated", 401);
+
+      const { ids } = req.body as { ids: string[] };
+      await notificationService.markNotificationsRead(userId, ids);
+
+      res.status(200).json({
+        success: true,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async sendToTopic(
     req: Request,
     res: Response,
