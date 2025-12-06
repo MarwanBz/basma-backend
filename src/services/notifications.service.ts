@@ -1,18 +1,45 @@
+import { fcm_device_tokens_platform, user_role } from "@prisma/client";
+
 import { AppError } from "@/utils/appError";
 import { Message } from "firebase-admin/messaging";
-import { fcm_device_tokens_platform, user_role } from "@prisma/client";
 import { getMessagingClient } from "@/config/firebaseAdmin";
 import { logger } from "@/config/logger";
 import { prisma } from "@/config/database";
 import { randomUUID } from "crypto";
 
-const ADMIN_TOPIC = process.env.FCM_ADMIN_TOPIC || "admin-updates";
+const TOPICS = {
+  allUsers: process.env.FCM_TOPIC_ALL_USERS || "all-users",
+  admins: process.env.FCM_TOPIC_ADMINS || "admins",
+  maintenanceAdmins:
+    process.env.FCM_TOPIC_MAINTENANCE_ADMINS || "maintenance-admins",
+  technicians: process.env.FCM_TOPIC_TECHNICIANS || "technicians",
+  customers: process.env.FCM_TOPIC_CUSTOMERS || "customers",
+};
+
+const DEPRECATED_TOPICS = new Set([
+  "job-hunting",
+  "job_updates",
+  "job-updates",
+]);
+
 const ADMIN_ROLES: user_role[] = [
   "SUPER_ADMIN",
   "MAINTENANCE_ADMIN",
   "BASMA_ADMIN",
   "ADMIN",
 ];
+
+const topicsForRole = (role?: user_role | null): string[] => {
+  const base = [TOPICS.allUsers];
+  if (!role) return base;
+  if (role === "TECHNICIAN") return [...base, TOPICS.technicians];
+  if (role === "CUSTOMER") return [...base, TOPICS.customers];
+  if (role === "MAINTENANCE_ADMIN")
+    return [...base, TOPICS.admins, TOPICS.maintenanceAdmins];
+  if (role === "SUPER_ADMIN" || role === "BASMA_ADMIN" || role === "ADMIN")
+    return [...base, TOPICS.admins];
+  return base;
+};
 
 type SaveTokenInput = {
   token: string;
@@ -57,7 +84,11 @@ const toPlatform = (platform?: string | null): fcm_device_tokens_platform => {
 
 export const notificationService = {
   getAdminTopic() {
-    return ADMIN_TOPIC;
+    return TOPICS.admins;
+  },
+
+  getTopicsForRole(role?: user_role | null) {
+    return topicsForRole(role);
   },
 
   async getAdminUserIds(): Promise<string[]> {
@@ -70,6 +101,10 @@ export const notificationService = {
 
   async subscribeAndStore(input: SaveTokenInput) {
     const { token, topic, userId } = input;
+
+    if (DEPRECATED_TOPICS.has(topic)) {
+      throw new AppError(`Topic '${topic}' is deprecated`, 400);
+    }
 
     if (!token || !topic) {
       throw new AppError("Token and topic are required", 400);
@@ -135,9 +170,67 @@ export const notificationService = {
     };
   },
 
-  async registerDevice(input: RegisterDeviceInput) {
+  async subscribeTokenToTopics(
+    tokenId: string,
+    token: string,
+    topics: string[]
+  ) {
+    const messaging = getMessagingClient();
+    const uniqueTopics = Array.from(new Set(topics));
+    const now = new Date();
+
+    const filteredTopics = uniqueTopics.filter((t) => {
+      if (DEPRECATED_TOPICS.has(t)) {
+        logger.warn("Skipping deprecated topic subscription", { topic: t });
+        return false;
+      }
+      return true;
+    });
+
+    if (!filteredTopics.length) return;
+
+    // Persist subscriptions
+    await prisma.$transaction(
+      filteredTopics.map((topic) =>
+        prisma.fcm_topic_subscriptions.upsert({
+          where: { tokenId_topic: { tokenId, topic } },
+          update: {},
+          create: {
+            id: randomUUID(),
+            topic,
+            tokenId,
+            createdAt: now,
+          },
+        })
+      )
+    );
+
+    // Subscribe in FCM
+    for (const topic of filteredTopics) {
+      const response = await messaging.subscribeToTopic([token], topic);
+      logger.info("Subscribed token to topic", {
+        topic,
+        tokenId,
+        successCount: response.successCount,
+        failureCount: response.failureCount,
+      });
+    }
+  },
+
+async registerDevice(input: RegisterDeviceInput) {
     const { token, userId } = input;
     if (!token) throw new AppError("Token is required", 400);
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true },
+    });
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    const targetTopics = topicsForRole(user.role);
 
     const platform = toPlatform(input.platform);
     const now = new Date();
@@ -166,6 +259,8 @@ export const notificationService = {
         userId,
       },
     });
+
+    await this.subscribeTokenToTopics(record.id, record.token, targetTopics);
 
     return record;
   },
@@ -231,6 +326,10 @@ export const notificationService = {
   async sendToTopic(input: SendTopicInput) {
     const { topic, title, body, data } = input;
     const messaging = getMessagingClient();
+
+    if (DEPRECATED_TOPICS.has(topic)) {
+      throw new AppError(`Topic '${topic}' is deprecated`, 400);
+    }
 
     const message: Message = {
       topic,
@@ -333,7 +432,7 @@ export const notificationService = {
 
     const messaging = getMessagingClient();
     const message: Message = {
-      topic: ADMIN_TOPIC,
+      topic: TOPICS.admins,
       notification: { title, body },
       data: data || {},
       android: {
@@ -355,14 +454,14 @@ export const notificationService = {
     try {
       const messageId = await messaging.send(message);
       logger.info("Admin notification dispatched", {
-        topic: ADMIN_TOPIC,
+        topic: TOPICS.admins,
         messageId,
         adminCount: adminIds.length,
       });
       return { pushSent: true, adminCount: adminIds.length, messageId };
     } catch (error) {
       logger.error("Failed to send admin notification topic", {
-        topic: ADMIN_TOPIC,
+        topic: TOPICS.admins,
         error,
       });
       return { pushSent: false, adminCount: adminIds.length };
