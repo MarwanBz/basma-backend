@@ -59,6 +59,11 @@ model maintenance_request {
   description       String                       @db.Text
   priority          request_priority             @default(MEDIUM)
   status            request_status               @default(SUBMITTED)
+  customerConfirmationStatus customer_confirmation_status?
+  customerConfirmedAt        DateTime?
+  customerConfirmationComment String?             @db.Text
+  customerRejectedAt          DateTime?
+  customerRejectionReason     String?             @db.Text
   categoryId        Int
   location          String                       @db.VarChar(100)
   building          String?                      @db.VarChar(100)
@@ -91,6 +96,7 @@ model maintenance_request {
   @@index([createdAt])
   @@index([scheduledDate])
   @@index([building])
+  @@index([customerConfirmationStatus])
   @@map("maintenance_requests")
 }
 
@@ -296,7 +302,14 @@ enum request_status {
   ASSIGNED
   IN_PROGRESS
   COMPLETED
+  CUSTOMER_REJECTED
   CLOSED
+  REJECTED
+}
+
+enum customer_confirmation_status {
+  PENDING
+  CONFIRMED
   REJECTED
 }
 
