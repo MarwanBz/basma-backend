@@ -2,7 +2,10 @@ import {
   AddCommentInput,
   AssignRequestInput,
   CreateRequestInput,
+  ConfirmCompletionInput,
   GetRequestsQueryInput,
+  GetConfirmationStatusInput,
+  RejectCompletionInput,
   SelfAssignRequestInput,
   UpdateRequestInput,
   UpdateRequestStatusInput,
@@ -13,6 +16,7 @@ import { ErrorCode } from "@/utils/errorCodes";
 import { RequestIdentifierService } from "./requestIdentifier.service";
 import { notificationService } from "./notifications.service";
 import prisma from "@/config/database";
+import { logger } from "@/config/logger";
 
 export class RequestService {
   private identifierService: RequestIdentifierService;
@@ -499,16 +503,63 @@ export class RequestService {
     const currentStatus = request.status;
     const newStatus = data.status;
 
-    // Validate status transition based on role
-    this.validateStatusTransition(currentStatus, newStatus, userRole);
+    // Validate status transition based on role and confirmation state
+    this.validateStatusTransition(
+      currentStatus,
+      newStatus,
+      userRole,
+      request.customerConfirmationStatus
+    );
 
-    // Update the request status
+    const updateData: any = {
+      status: newStatus,
+    };
+
+    if (newStatus === "COMPLETED") {
+      updateData.completedDate = new Date();
+      updateData.customerConfirmationStatus = "PENDING";
+      updateData.customerConfirmedAt = null;
+      updateData.customerConfirmationComment = null;
+      updateData.customerRejectedAt = null;
+      updateData.customerRejectionReason = null;
+    }
+
+    if (newStatus === "IN_PROGRESS") {
+      updateData.completedDate = null;
+      updateData.customerConfirmationStatus = null;
+      updateData.customerConfirmedAt = null;
+      updateData.customerConfirmationComment = null;
+      updateData.customerRejectedAt = null;
+      updateData.customerRejectionReason = null;
+    }
+
+    if (newStatus === "CUSTOMER_REJECTED") {
+      updateData.customerConfirmationStatus = "REJECTED";
+      updateData.customerRejectedAt = new Date();
+      updateData.customerRejectionReason = data.reason || null;
+    }
+
+    if (newStatus === "CLOSED") {
+      // Allow only confirmed or admin override
+      if (
+        request.customerConfirmationStatus !== "CONFIRMED" &&
+        !this.canAdminOverride(userRole)
+      ) {
+        throw new AppError(
+          "Request cannot be closed without confirmation",
+          400,
+          ErrorCode.INVALID_INPUT
+        );
+      }
+
+      updateData.customerConfirmationStatus = "CONFIRMED";
+      updateData.customerConfirmedAt = new Date();
+      updateData.customerConfirmationComment = data.reason || null;
+    }
+
     const updatedRequest = await prisma.maintenance_request.update({
       where: { id: requestId },
-      data: {
-        status: newStatus,
-        completedDate: newStatus === "COMPLETED" ? new Date() : null,
-      },
+      data: updateData,
     });
 
     // Record status change in history
@@ -534,22 +585,212 @@ export class RequestService {
       },
     });
 
-    // DEPRECATED: FCM notification service - moved to src/deprecated/notifications/
-    // Send FCM notification for status change
-    // notificationService
-    //   .notifyRequestStatusChange(
-    //     requestId,
-    //     request.title,
-    //     newStatus,
-    //     request.requestedById,
-    //     request.assignedToId || undefined
-    //   )
-    //   .catch((error) => {
-    //     // Log error but don't fail the request
-    //     console.error("Failed to send status change notification:", error);
-    //   });
+    return updatedRequest;
+  }
+
+  async confirmCompletion(
+    requestId: string,
+    data: ConfirmCompletionInput["body"],
+    userId: string,
+    userRole: string
+  ) {
+    const request = await this.getRequestById(requestId, userRole, userId);
+
+    if (userRole === "CUSTOMER" && request.requestedById !== userId) {
+      throw new AppError("Access denied", 403, ErrorCode.FORBIDDEN);
+    }
+
+    if (request.status !== "COMPLETED") {
+      throw new AppError(
+        "Request is not awaiting confirmation",
+        400,
+        ErrorCode.INVALID_INPUT
+      );
+    }
+
+    if (request.customerConfirmationStatus === "CONFIRMED") {
+      throw new AppError("Request already confirmed", 400, ErrorCode.INVALID_INPUT);
+    }
+
+    const updatedRequest = await prisma.maintenance_request.update({
+      where: { id: requestId },
+      data: {
+        status: "CLOSED",
+        customerConfirmationStatus: "CONFIRMED",
+        customerConfirmedAt: new Date(),
+        customerConfirmationComment: data.comment || null,
+        customerRejectedAt: null,
+        customerRejectionReason: null,
+      },
+    });
+
+    await prisma.request_status_history.create({
+      data: {
+        fromStatus: "COMPLETED",
+        toStatus: "CLOSED",
+        reason: data.comment || "Customer confirmed completion",
+        changedById: userId,
+        requestId,
+      },
+    });
 
     return updatedRequest;
+  }
+
+  async rejectCompletion(
+    requestId: string,
+    data: RejectCompletionInput["body"],
+    userId: string,
+    userRole: string
+  ) {
+    const request = await this.getRequestById(requestId, userRole, userId);
+
+    if (userRole === "CUSTOMER" && request.requestedById !== userId) {
+      throw new AppError("Access denied", 403, ErrorCode.FORBIDDEN);
+    }
+
+    if (request.status !== "COMPLETED") {
+      throw new AppError(
+        "Request is not awaiting confirmation",
+        400,
+        ErrorCode.INVALID_INPUT
+      );
+    }
+
+    if (request.customerConfirmationStatus === "CONFIRMED") {
+      throw new AppError(
+        "Request already confirmed, cannot reject",
+        400,
+        ErrorCode.INVALID_INPUT
+      );
+    }
+
+    const updatedRequest = await prisma.maintenance_request.update({
+      where: { id: requestId },
+      data: {
+        status: "CUSTOMER_REJECTED",
+        customerConfirmationStatus: "REJECTED",
+        customerRejectedAt: new Date(),
+        customerRejectionReason: data.reason,
+        customerConfirmationComment: data.comment || null,
+      },
+    });
+
+    await prisma.request_status_history.create({
+      data: {
+        fromStatus: "COMPLETED",
+        toStatus: "CUSTOMER_REJECTED",
+        reason: data.reason,
+        changedById: userId,
+        requestId,
+      },
+    });
+
+    return updatedRequest;
+  }
+
+  async getConfirmationStatus(
+    requestId: string,
+    userId: string,
+    userRole: string
+  ) {
+    const request = await prisma.maintenance_request.findUnique({
+      where: { id: requestId },
+      select: {
+        id: true,
+        status: true,
+        completedDate: true,
+        customerConfirmationStatus: true,
+        customerConfirmedAt: true,
+        customerRejectedAt: true,
+        customerConfirmationComment: true,
+        customerRejectionReason: true,
+        requestedById: true,
+      },
+    });
+
+    if (!request) {
+      throw new AppError("Request not found", 404, ErrorCode.NOT_FOUND);
+    }
+
+    if (userRole === "CUSTOMER" && request.requestedById !== userId) {
+      throw new AppError("Access denied", 403, ErrorCode.FORBIDDEN);
+    }
+
+    const daysSinceCompletion = request.completedDate
+      ? Math.floor(
+          (Date.now() - new Date(request.completedDate).getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      : null;
+
+    return {
+      requestId,
+      status: request.customerConfirmationStatus || "PENDING",
+      completedDate: request.completedDate,
+      customerConfirmedAt: request.customerConfirmedAt,
+      customerRejectedAt: request.customerRejectedAt,
+      comment: request.customerConfirmationComment,
+      rejectionReason: request.customerRejectionReason,
+      daysSinceCompletion,
+      canConfirm:
+        request.status === "COMPLETED" &&
+        request.customerConfirmationStatus !== "CONFIRMED",
+      canReject:
+        request.status === "COMPLETED" &&
+        request.customerConfirmationStatus !== "CONFIRMED",
+    };
+  }
+
+  async autoClosePendingRequests(days = 3) {
+    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const pending = await prisma.maintenance_request.findMany({
+      where: {
+        status: "COMPLETED",
+        customerConfirmationStatus: "PENDING",
+        completedDate: { lte: cutoff },
+      },
+      select: {
+        id: true,
+        title: true,
+        customIdentifier: true,
+      },
+    });
+
+    let processed = 0;
+    for (const request of pending) {
+      await prisma.$transaction([
+        prisma.maintenance_request.update({
+          where: { id: request.id },
+          data: {
+            status: "CLOSED",
+            customerConfirmationStatus: "CONFIRMED",
+            customerConfirmedAt: new Date(),
+            customerConfirmationComment: `Auto-confirmed after ${days} days timeout`,
+            customerRejectedAt: null,
+            customerRejectionReason: null,
+          },
+        }),
+        prisma.request_status_history.create({
+          data: {
+            fromStatus: "COMPLETED",
+            toStatus: "CLOSED",
+            reason: `Auto-confirmed after ${days} days without customer response`,
+            changedById: null,
+            requestId: request.id,
+          },
+        }),
+      ]);
+      processed += 1;
+    }
+
+    if (processed > 0) {
+      logger.info(
+        `Auto-closed ${processed} requests after ${days} days without confirmation`
+      );
+    }
+
+    return processed;
   }
 
   /**
@@ -729,15 +970,17 @@ export class RequestService {
   private validateStatusTransition(
     currentStatus: string,
     newStatus: string,
-    userRole: string
+    userRole: string,
+    confirmationStatus?: string | null
   ) {
     const validTransitions: Record<string, string[]> = {
       DRAFT: ["SUBMITTED"],
       SUBMITTED: ["ASSIGNED", "REJECTED"],
       ASSIGNED: ["IN_PROGRESS", "REJECTED"],
       IN_PROGRESS: ["COMPLETED", "REJECTED"],
-      COMPLETED: ["CLOSED", "IN_PROGRESS"],
-      CLOSED: [],
+      COMPLETED: ["CLOSED", "IN_PROGRESS", "CUSTOMER_REJECTED"],
+      CUSTOMER_REJECTED: ["IN_PROGRESS", "COMPLETED"],
+      CLOSED: ["IN_PROGRESS"],
       REJECTED: ["SUBMITTED"],
     };
 
@@ -749,22 +992,75 @@ export class RequestService {
       );
     }
 
+    // Once confirmed, only admin-level override can reopen
+    if (
+      currentStatus === "COMPLETED" &&
+      newStatus === "IN_PROGRESS" &&
+      confirmationStatus === "CONFIRMED" &&
+      !this.canAdminOverride(userRole)
+    ) {
+      throw new AppError(
+        "Confirmed requests can only be reopened by admin",
+        403,
+        ErrorCode.FORBIDDEN
+      );
+    }
+
+    // Closing requires confirmation or admin override (checked earlier)
+    if (
+      currentStatus === "COMPLETED" &&
+      newStatus === "CLOSED" &&
+      confirmationStatus !== "CONFIRMED" &&
+      !this.canAdminOverride(userRole)
+    ) {
+      throw new AppError(
+        "Request cannot be closed without confirmation",
+        400,
+        ErrorCode.INVALID_INPUT
+      );
+    }
+
     // Role-based status update restrictions
     const roleRestrictions: Record<string, string[]> = {
       CUSTOMER: ["DRAFT", "SUBMITTED"],
       TECHNICIAN: ["IN_PROGRESS", "COMPLETED"],
-      BASMA_ADMIN: [], // Can only view, not update status
-      MAINTENANCE_ADMIN: ["ASSIGNED", "REJECTED", "IN_PROGRESS", "COMPLETED"], // Enhanced with emergency permissions
+      BASMA_ADMIN: [], // View-only
+      MAINTENANCE_ADMIN: [
+        "ASSIGNED",
+        "REJECTED",
+        "IN_PROGRESS",
+        "COMPLETED",
+        "CUSTOMER_REJECTED",
+        "CLOSED",
+      ],
+      ADMIN: [
+        "ASSIGNED",
+        "REJECTED",
+        "IN_PROGRESS",
+        "COMPLETED",
+        "CUSTOMER_REJECTED",
+        "CLOSED",
+      ],
       SUPER_ADMIN: [
         "DRAFT",
         "SUBMITTED",
         "ASSIGNED",
         "IN_PROGRESS",
         "COMPLETED",
+        "CUSTOMER_REJECTED",
         "CLOSED",
         "REJECTED",
       ],
     };
+
+    // Customer rejection should happen through dedicated endpoint; disallow via status route
+    if (newStatus === "CUSTOMER_REJECTED" && userRole === "CUSTOMER") {
+      throw new AppError(
+        "Use reject-completion endpoint for customer rejection",
+        403,
+        ErrorCode.FORBIDDEN
+      );
+    }
 
     if (!roleRestrictions[userRole]?.includes(newStatus)) {
       throw new AppError(
@@ -773,5 +1069,9 @@ export class RequestService {
         ErrorCode.FORBIDDEN
       );
     }
+  }
+
+  private canAdminOverride(userRole: string) {
+    return ["SUPER_ADMIN", "MAINTENANCE_ADMIN", "ADMIN"].includes(userRole);
   }
 }
