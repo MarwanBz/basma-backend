@@ -1,6 +1,7 @@
 # Customer Completion Confirmation Flow
 
 ## Current Flow (Before Feature)
+
 ```
 ┌─────────┐     ┌──────────┐     ┌─────────────┐     ┌──────────┐     ┌────────┐
 │ DRAFT   │ --> │ SUBMITTED│ --> │  ASSIGNED  │ --> │IN_PROGRESS│ --> │COMPLETED│ --> │ CLOSED │
@@ -14,6 +15,7 @@
 ```
 
 ## Proposed Flow (After Feature)
+
 ```
 ┌─────────┐     ┌──────────┐     ┌─────────────┐     ┌──────────┐     ┌──────────────┐
 │ DRAFT   │ --> │ SUBMITTED│ --> │  ASSIGNED  │ --> │IN_PROGRESS│ --> │  COMPLETED   │
@@ -27,6 +29,9 @@
                                                                     │ Awaiting Customer   │
                                                                     │   Confirmation     │
                                                                     └─────────────────────┘
+                                                                            │
+                                                              (Auto-close after 3 days)
+                                                                            │
                                                                               │
                                                                     ┌─────────┴─────────┐
                                                                     │                   │
@@ -52,6 +57,8 @@
                                                           │     CLOSED      │
                                                           └─────────────────┘
 ```
+
+**Notes (current scope)**: Notifications are deferred; auto-close after 3 days without customer action (admin can also close).
 
 ## Detailed Sequence Diagram
 
@@ -103,14 +110,14 @@ Technician/Admin          System              Customer            Database
 
 ## Status Transition Matrix
 
-| From Status      | To Status          | Who Can Do It        | Requires              |
-|-----------------|---------------------|----------------------|-----------------------|
-| IN_PROGRESS     | COMPLETED          | Technician, Admin    | -                     |
-| COMPLETED       | CLOSED             | Customer, Admin     | Customer confirmation |
-| COMPLETED       | CUSTOMER_REJECTED  | Customer             | Rejection reason      |
-| COMPLETED       | IN_PROGRESS        | Technician, Admin   | - (revert)            |
-| CUSTOMER_REJECTED | IN_PROGRESS      | Admin, Technician   | -                     |
-| CUSTOMER_REJECTED | COMPLETED         | Admin               | - (override)          |
+| From Status       | To Status         | Who Can Do It     | Requires              |
+| ----------------- | ----------------- | ----------------- | --------------------- |
+| IN_PROGRESS       | COMPLETED         | Technician, Admin | -                     |
+| COMPLETED         | CLOSED            | Customer, Admin   | Customer confirmation |
+| COMPLETED         | CUSTOMER_REJECTED | Customer          | Rejection reason      |
+| COMPLETED         | IN_PROGRESS       | Technician, Admin | - (revert)            |
+| CUSTOMER_REJECTED | IN_PROGRESS       | Admin, Technician | -                     |
+| CUSTOMER_REJECTED | COMPLETED         | Admin             | - (override)          |
 
 ## Decision Tree: What Happens After COMPLETED?
 
@@ -167,4 +174,3 @@ Status Change to COMPLETED
                         └──> CUSTOMER_REJECTED
                              customerConfirmationStatus: REJECTED
 ```
-
