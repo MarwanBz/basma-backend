@@ -1,0 +1,642 @@
+openapi: 3.0.3
+info:
+  title: Basma Maintenance System - Customer Confirmation API
+  description: |
+    Comprehensive API documentation for the customer completion confirmation feature.
+
+    This feature allows customers to confirm or reject maintenance work completion after a technician marks a request as completed.
+
+    ## Workflow
+    1. Technician marks a request as `COMPLETED`
+    2. Customer receives notification to confirm/reject the work
+    3. Customer can:
+       - **Confirm**: Request status changes to `CLOSED`
+       - **Reject**: Request status changes to `CUSTOMER_REJECTED`
+    4. If no action within 3 days, request auto-confirms
+    5. Admin can override and close without confirmation
+
+    ## Authentication
+    All endpoints require a valid JWT token. Include the token in the Authorization header:
+    ```
+    Authorization: Bearer <your_jwt_token>
+    ```
+  version: 1.0.0
+  contact:
+    name: Basma Development Team
+    email: dev@basma-maintenance.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Development server
+  - url: https://api.basma-maintenance.com/api/v1
+    description: Production server
+
+tags:
+  - name: Customer Confirmation
+    description: Customer completion confirmation endpoints
+
+security:
+  - bearerAuth: []
+
+paths:
+  /requests/{requestId}/confirm-completion:
+    post:
+      tags:
+        - Customer Confirmation
+      summary: Confirm request completion
+      description: |
+        Customer confirms that maintenance work has been completed to their satisfaction.
+        This endpoint changes the request status from `COMPLETED` to `CLOSED`.
+
+        **Restrictions:**
+        - Only customers who own the request can confirm
+        - Request must be in `COMPLETED` status
+        - Cannot confirm already confirmed/rejected requests
+
+        **Notifications:**
+        - Customer receives confirmation email
+        - Technician receives notification
+        - Request is marked as closed
+      operationId: confirmRequestCompletion
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          description: Unique identifier of the maintenance request
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        description: Optional feedback about the completed work
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+                  description: Customer's feedback about the completed work
+                  maxLength: 2000
+                  example: "Work looks great! Thank you for the quick service."
+              additionalProperties: false
+      responses:
+        '200':
+          description: Request confirmed and closed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfirmCompletionResponse'
+              examples:
+                success:
+                  summary: Successful confirmation
+                  value:
+                    success: true
+                    data:
+                      request:
+                        id: "550e8400-e29b-41d4-a716-446655440000"
+                        status: "closed"
+                        customerConfirmationStatus: "confirmed"
+                        customerConfirmedAt: "2025-01-15T14:20:00Z"
+                        customerConfirmationComment: "Work looks great! Thank you."
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Request already confirmed or rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                success: false
+                error:
+                  code: "ALREADY_CONFIRMED"
+                  message: "Request has already been confirmed"
+
+  /requests/{requestId}/reject-completion:
+    post:
+      tags:
+        - Customer Confirmation
+      summary: Reject request completion
+      description: |
+        Customer rejects the completion and reports issues with the work.
+        This endpoint changes the request status from `COMPLETED` to `CUSTOMER_REJECTED`.
+
+        **Restrictions:**
+        - Only customers who own the request can reject
+        - Request must be in `COMPLETED` status
+        - Valid rejection reason is required
+
+        **Follow-up:**
+        - Request is re-opened for technician review
+        - Technician receives notification with rejection details
+        - Admin is notified of the rejection
+      operationId: rejectRequestCompletion
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          description: Unique identifier of the maintenance request
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        description: Rejection details with reason and additional comments
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectCompletionRequest'
+      responses:
+        '200':
+          description: Request rejected successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RejectCompletionResponse'
+              examples:
+                success:
+                  summary: Successful rejection
+                  value:
+                    success: true
+                    data:
+                      request:
+                        id: "550e8400-e29b-41d4-a716-446655440000"
+                        status: "customer_rejected"
+                        customerConfirmationStatus: "rejected"
+                        customerRejectedAt: "2025-01-15T14:25:00Z"
+                        customerRejectionReason: "Work not completed properly"
+                        customerConfirmationComment: "The door still doesn't close correctly."
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Request already confirmed or rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /requests/{requestId}/confirmation-status:
+    get:
+      tags:
+        - Customer Confirmation
+      summary: Get confirmation status
+      description: |
+        Retrieve the current customer confirmation status for a request.
+
+        **Access:**
+        - Customers can check their own requests
+        - Assigned technicians can check their assigned requests
+        - Admins can check any request
+
+        **Information provided:**
+        - Current confirmation status
+        - Whether user can confirm/reject
+        - Auto-confirm date (if applicable)
+        - Days since completion
+      operationId: getConfirmationStatus
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          description: Unique identifier of the maintenance request
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '200':
+          description: Confirmation status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfirmationStatusResponse'
+              examples:
+                pending:
+                  summary: Awaiting confirmation
+                  value:
+                    success: true
+                    data:
+                      requestId: "550e8400-e29b-41d4-a716-446655440000"
+                      status: "pending"
+                      completedDate: "2025-01-15T10:30:00Z"
+                      daysSinceCompletion: 2
+                      canConfirm: true
+                      canReject: true
+                      autoConfirmDate: "2025-01-18T10:30:00Z"
+                confirmed:
+                  summary: Already confirmed
+                  value:
+                    success: true
+                    data:
+                      requestId: "550e8400-e29b-41d4-a716-446655440000"
+                      status: "confirmed"
+                      confirmedAt: "2025-01-15T14:20:00Z"
+                      daysSinceCompletion: 2
+                      canConfirm: false
+                      canReject: false
+                      customerComment: "Work looks great! Thank you."
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /requests/{requestId}/close-without-confirmation:
+    post:
+      tags:
+        - Customer Confirmation
+      summary: Close request without confirmation (Admin only)
+      description: |
+        Admin can close a request without customer confirmation.
+        This is an override feature used when:
+        - Customer is unresponsive after multiple attempts
+        - Special circumstances warrant immediate closure
+        - Customer has verbally confirmed but not through the system
+
+        **Restrictions:**
+        - Only Admin or Super Admin can use this endpoint
+        - A valid reason is required for audit purposes
+      operationId: closeWithoutConfirmation
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          description: Unique identifier of the maintenance request
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        description: Reason for overriding customer confirmation
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+                  description: Detailed reason for closing without customer confirmation
+                  minLength: 10
+                  maxLength: 2000
+                  example: "Customer confirmed verbally over phone and requested immediate closure"
+              additionalProperties: false
+      responses:
+        '200':
+          description: Request closed without confirmation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CloseWithoutConfirmationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token obtained from authentication endpoint.
+        Include the token in the Authorization header: `Bearer <token>`
+
+  schemas:
+    ConfirmCompletionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            request:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                status:
+                  type: string
+                  enum: ["closed"]
+                  example: "closed"
+                customerConfirmationStatus:
+                  type: string
+                  enum: ["confirmed"]
+                  example: "confirmed"
+                customerConfirmedAt:
+                  type: string
+                  format: date-time
+                  example: "2025-01-15T14:20:00Z"
+                customerConfirmationComment:
+                  type: string
+                  maxLength: 2000
+                  example: "Work looks great! Thank you."
+
+    RejectCompletionRequest:
+      type: object
+      required:
+        - reason
+      properties:
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 2000
+          description: Required reason for rejecting the completion
+          example: "Work not completed properly"
+        comment:
+          type: string
+          maxLength: 2000
+          description: Additional details about the issues
+          example: "The door still doesn't close correctly. Please fix again."
+      additionalProperties: false
+
+    RejectCompletionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            request:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                status:
+                  type: string
+                  enum: ["customer_rejected"]
+                  example: "customer_rejected"
+                customerConfirmationStatus:
+                  type: string
+                  enum: ["rejected"]
+                  example: "rejected"
+                customerRejectedAt:
+                  type: string
+                  format: date-time
+                  example: "2025-01-15T14:25:00Z"
+                customerRejectionReason:
+                  type: string
+                  example: "Work not completed properly"
+                customerConfirmationComment:
+                  type: string
+                  example: "The door still doesn't close correctly."
+
+    ConfirmationStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            requestId:
+              type: string
+              format: uuid
+              example: "550e8400-e29b-41d4-a716-446655440000"
+            status:
+              type: string
+              enum: ["pending", "confirmed", "rejected", "overridden"]
+              description: Current confirmation status
+              example: "pending"
+            completedDate:
+              type: string
+              format: date-time
+              description: Date when request was marked as completed
+              example: "2025-01-15T10:30:00Z"
+            daysSinceCompletion:
+              type: integer
+              description: Number of days since completion
+              example: 2
+            canConfirm:
+              type: boolean
+              description: Whether the current user can confirm this request
+              example: true
+            canReject:
+              type: boolean
+              description: Whether the current user can reject this request
+              example: true
+            confirmedAt:
+              type: string
+              format: date-time
+              description: Date when customer confirmed completion
+              example: "2025-01-15T14:20:00Z"
+            rejectedAt:
+              type: string
+              format: date-time
+              description: Date when customer rejected completion
+              example: "2025-01-15T14:25:00Z"
+            customerComment:
+              type: string
+              maxLength: 2000
+              description: Customer's confirmation or rejection comment
+              example: "Work looks great! Thank you."
+            rejectionReason:
+              type: string
+              description: Reason for rejection (if rejected)
+              example: "Work not completed properly"
+            autoConfirmDate:
+              type: string
+              format: date-time
+              description: Date when request will auto-confirm (3 days after completion)
+              example: "2025-01-18T10:30:00Z"
+
+    CloseWithoutConfirmationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            request:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                status:
+                  type: string
+                  enum: ["closed"]
+                  example: "closed"
+                customerConfirmationStatus:
+                  type: string
+                  enum: ["overridden"]
+                  example: "overridden"
+                closedWithoutConfirmation:
+                  type: boolean
+                  example: true
+                adminOverrideReason:
+                  type: string
+                  example: "Customer confirmed verbally over phone"
+                closedAt:
+                  type: string
+                  format: date-time
+                  example: "2025-01-15T16:30:00Z"
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Error code for programmatic handling
+              example: "INVALID_STATUS"
+            message:
+              type: string
+              description: Human-readable error message
+              example: "Request must be in COMPLETED status to confirm"
+            details:
+              type: object
+              description: Additional error details (optional)
+              example:
+                currentStatus: "in_progress"
+                requiredStatus: "completed"
+
+  responses:
+    BadRequest:
+      description: Bad request - Invalid input or state
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            invalidStatus:
+              summary: Request not in completed status
+              value:
+                success: false
+                error:
+                  code: "INVALID_STATUS"
+                  message: "Request must be in COMPLETED status to confirm completion"
+                  details:
+                    currentStatus: "in_progress"
+                    requiredStatus: "completed"
+            validationError:
+              summary: Validation error
+              value:
+                success: false
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Reason is required and must be at least 3 characters"
+                  details:
+                    field: "reason"
+                    value: ""
+
+    Unauthorized:
+      description: Unauthorized - Invalid or missing authentication token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: "UNAUTHORIZED"
+                  message:
+                    type: string
+                    example: "Access token is missing or invalid"
+
+    Forbidden:
+      description: Forbidden - User doesn't have permission to perform this action
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: "FORBIDDEN"
+                  message:
+                    type: string
+                    example: "Only customers can confirm their own requests"
+
+    NotFound:
+      description: Request not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: "NOT_FOUND"
+                  message:
+                    type: string
+                    example: "Maintenance request not found"
+
+# Example for API documentation
+examples:
+  ConfirmCompletionExample:
+    summary: Example of confirming a completed request
+    value:
+      comment: "Excellent work! The issue has been fully resolved."
+
+  RejectCompletionExample:
+    summary: Example of rejecting a completed request
+    value:
+      reason: "Issues not fully resolved"
+      comment: "The air conditioner is still making strange noises. Please investigate further."
+
+  CloseOverrideExample:
+    summary: Example of admin closing without confirmation
+    value:
+      reason: "Customer confirmed completion via phone call and requested immediate closure. Email sent for documentation."
