@@ -1,4 +1,4 @@
-import { FcmTopics, NotificationTemplates } from "@/@types/fcm.types";
+import { FcmTopics, NotificationTemplates } from "../types/fcm.types";
 
 import { fcmService } from "./fcm.service";
 import { logger } from "@/config/logger";
@@ -12,6 +12,9 @@ import { request_status } from "@prisma/client";
  *
  * This service abstracts away the complexity of choosing notification channels
  * and provides simple methods for common notification scenarios.
+ * 
+ * @deprecated This service has been deprecated and moved to the deprecated folder.
+ * All FCM notification functionality has been removed from the active codebase.
  */
 export class NotificationService {
   private static instance: NotificationService;
@@ -399,3 +402,4 @@ export class NotificationService {
 
 // Export singleton instance
 export const notificationService = NotificationService.getInstance();
+

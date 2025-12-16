@@ -34,6 +34,7 @@ model user {
   commentsCreated          request_comment[]            @relation("CommentCreator")
   identifiersCreated       request_identifier[]         @relation("IdentifierCreator")
   statusChangesMade        request_status_history[]     @relation("StatusChanger")
+  notifications            notifications[]
 
   @@map("users")
 }
@@ -58,6 +59,11 @@ model maintenance_request {
   description       String                       @db.Text
   priority          request_priority             @default(MEDIUM)
   status            request_status               @default(SUBMITTED)
+  customerConfirmationStatus customer_confirmation_status?
+  customerConfirmedAt        DateTime?
+  customerConfirmationComment String?             @db.Text
+  customerRejectedAt          DateTime?
+  customerRejectionReason     String?             @db.Text
   categoryId        Int
   location          String                       @db.VarChar(100)
   building          String?                      @db.VarChar(100)
@@ -90,6 +96,7 @@ model maintenance_request {
   @@index([createdAt])
   @@index([scheduledDate])
   @@index([building])
+  @@index([customerConfirmationStatus])
   @@map("maintenance_requests")
 }
 
@@ -263,6 +270,22 @@ model fcm_topic_subscriptions {
   @@index([topic])
 }
 
+model notifications {
+  id        String   @id
+  userId    String
+  title     String   @db.VarChar(200)
+  body      String   @db.Text
+  type      String?  @db.VarChar(100)
+  data      String?  @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  users user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
 enum user_role {
   SUPER_ADMIN
   MAINTENANCE_ADMIN
@@ -279,7 +302,14 @@ enum request_status {
   ASSIGNED
   IN_PROGRESS
   COMPLETED
+  CUSTOMER_REJECTED
   CLOSED
+  REJECTED
+}
+
+enum customer_confirmation_status {
+  PENDING
+  CONFIRMED
   REJECTED
 }
 

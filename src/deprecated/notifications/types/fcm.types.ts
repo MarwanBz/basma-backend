@@ -3,6 +3,9 @@ import { fcm_device_tokens_platform } from "@prisma/client";
 /**
  * FCM Notification payload
  * This appears in the system tray when app is in background/closed
+ * 
+ * @deprecated These types have been deprecated and moved to the deprecated folder.
+ * All FCM notification functionality has been removed from the active codebase.
  */
 export interface FcmNotification {
   title: string;
@@ -293,3 +296,4 @@ export class NotificationTemplates {
     };
   }
 }
+

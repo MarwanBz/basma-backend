@@ -2,13 +2,16 @@ import * as admin from "firebase-admin";
 import * as fs from "fs";
 import * as path from "path";
 
-import { logger } from "./logger";
+import { logger } from "@/config/logger";
 
 /**
  * Firebase Cloud Messaging Configuration
  *
  * This module initializes the Firebase Admin SDK for sending push notifications.
  * It uses a service account JSON file for authentication.
+ * 
+ * @deprecated This configuration has been deprecated and moved to the deprecated folder.
+ * All FCM notification functionality has been removed from the active codebase.
  */
 
 interface FirebaseConfig {
@@ -170,3 +173,4 @@ export { FirebaseConfigManager };
 
 // Export Firebase Admin for direct access if needed
 export { admin };
+

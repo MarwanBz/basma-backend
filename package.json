@@ -79,6 +79,7 @@
     "mime-types": "^3.0.1",
     "module-alias": "^2.2.3",
     "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
     "nodemailer": "^6.9.16",
     "postmanify-express": "^2.2.1",
     "prom-client": "^15.1.3",

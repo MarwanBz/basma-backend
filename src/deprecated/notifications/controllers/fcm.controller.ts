@@ -6,18 +6,21 @@ import {
   SubscribeToTopicInput,
   UnregisterDeviceInput,
   UnsubscribeFromTopicInput,
-} from "@/validators/fcm.validator";
+} from "../validators/fcm.validator";
 
 import { AppError } from "@/utils/appError";
-import { fcmService } from "@/services/fcm.service";
+import { fcmService } from "../services/fcm.service";
 import { logger } from "@/config/logger";
-import { notificationService } from "@/services/notification.service";
+import { notificationService } from "../services/notification.service";
 import { prisma } from "@/config/database";
 
 /**
  * FCM Controller
  *
  * Handles FCM-related HTTP endpoints
+ * 
+ * @deprecated This controller has been deprecated and moved to the deprecated folder.
+ * All FCM notification functionality has been removed from the active codebase.
  */
 export class FcmController {
   /**
@@ -404,3 +407,4 @@ export class FcmController {
 
 // Export controller instance
 export const fcmController = new FcmController();
+

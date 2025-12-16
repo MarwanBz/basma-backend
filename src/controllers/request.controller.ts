@@ -183,6 +183,71 @@ export class RequestController extends BaseController {
   };
 
   /**
+   * Confirm completion (customer or admin override)
+   */
+  confirmCompletion = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      if (!req.user?.userId || !req.user?.role) {
+        throw new AppError("User not authenticated", 401);
+      }
+
+      return await this.requestService.confirmCompletion(
+        req.params.id,
+        req.body,
+        req.user.userId,
+        req.user.role
+      );
+    });
+  };
+
+  /**
+   * Reject completion (customer)
+   */
+  rejectCompletion = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      if (!req.user?.userId || !req.user?.role) {
+        throw new AppError("User not authenticated", 401);
+      }
+
+      return await this.requestService.rejectCompletion(
+        req.params.id,
+        req.body,
+        req.user.userId,
+        req.user.role
+      );
+    });
+  };
+
+  /**
+   * Get confirmation status for a request
+   */
+  getConfirmationStatus = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      if (!req.user?.userId || !req.user?.role) {
+        throw new AppError("User not authenticated", 401);
+      }
+
+      return await this.requestService.getConfirmationStatus(
+        req.params.id,
+        req.user.userId,
+        req.user.role
+      );
+    });
+  };
+
+  /**
    * Update request status
    */
   updateStatus = async (

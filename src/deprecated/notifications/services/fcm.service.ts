@@ -2,9 +2,9 @@ import {
   DeviceRegistrationRequest,
   FcmMessage,
   FcmServiceResponse,
-} from "@/@types/fcm.types";
+} from "../types/fcm.types";
 
-import { FirebaseConfigManager } from "@/config/fcm.config";
+import { FirebaseConfigManager } from "../config/fcm.config";
 import { fcm_device_tokens_platform } from "@prisma/client";
 import { logger } from "@/config/logger";
 import { prisma } from "@/config/database";
@@ -17,6 +17,9 @@ import { prisma } from "@/config/database";
  * - Sending notifications to specific devices
  * - Managing device tokens
  * - Topic subscriptions
+ * 
+ * @deprecated This service has been deprecated and moved to the deprecated folder.
+ * All FCM notification functionality has been removed from the active codebase.
  */
 export class FcmService {
   private static instance: FcmService;
@@ -519,3 +522,4 @@ export class FcmService {
 
 // Export singleton instance
 export const fcmService = FcmService.getInstance();
+

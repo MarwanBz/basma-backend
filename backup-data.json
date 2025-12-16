@@ -5,7 +5,7 @@
       "name": "خالد محمود",
       "email": "khaled.mahmoud@test.com",
       "password": "$2b$10$SJKisGEx1DiNA3V6evg4O.0UALIvCFR53T3ZN7hDHR5aA6JFjvbAm",
-      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYWE5NGE2MS1jMjQ0LTRkNmMtOGE4Ni02ZjQ3ODBkMDUwMDYiLCJpYXQiOjE3NjEwOTgwODIsImV4cCI6MTc2MTcwMjg4Mn0.N5yNDBlJF4epXZ2RiSDRUpjb8Vyo9Q9LUHFqxbhAWXY",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYWE5NGE2MS1jMjQ0LTRkNmMtOGE4Ni02ZjQ3ODBkMDUwMDYiLCJpYXQiOjE3NjIxNzU4ODksImV4cCI6MTc2Mjc4MDY4OX0.OO7ucOdidXfvsktrogl2XCNXJKVyopZghiHR_1Npk5s",
       "role": "BASMA_ADMIN",
       "emailVerified": "2025-10-17T23:35:46.835Z",
       "emailVerificationToken": null,
@@ -14,7 +14,7 @@
       "passwordResetExpires": null,
       "image": null,
       "createdAt": "2025-10-17T23:35:46.837Z",
-      "updatedAt": "2025-10-22T01:54:42.482Z"
+      "updatedAt": "2025-11-03T13:18:09.401Z"
     },
     {
       "id": "467e9c46-cc79-478a-bd0e-c716df7a6716",
@@ -69,7 +69,7 @@
       "name": "Marwan Baza",
       "email": "kaka.mer1997@gmail.com",
       "password": "$2b$10$M8kmr8.hJ2FkTJHxX34FuutDs9T3RoMJJD4rGJ1OFTL5sLgX2pNFS",
-      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5ODVjMGMyZi0zNmMyLTRiYzEtYTEyYy1jNzdmMjc4Y2UyZTIiLCJpYXQiOjE3NjEwOTgwMDMsImV4cCI6MTc2MTcwMjgwM30.xtLINhbjLQbEXbg_Ez-0GJlr-zqgPT21b21ismMAkSI",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5ODVjMGMyZi0zNmMyLTRiYzEtYTEyYy1jNzdmMjc4Y2UyZTIiLCJpYXQiOjE3NjIwODY1MjcsImV4cCI6MTc2MjY5MTMyN30.nqoMXgGF_oy-2hV06nnvnMnMLH3x6BcUTXyMkcJHXOE",
       "role": "CUSTOMER",
       "emailVerified": null,
       "emailVerificationToken": null,
@@ -78,14 +78,14 @@
       "passwordResetExpires": null,
       "image": null,
       "createdAt": "2025-10-20T16:56:13.673Z",
-      "updatedAt": "2025-10-22T01:53:23.720Z"
+      "updatedAt": "2025-11-02T12:28:47.969Z"
     },
     {
       "id": "b2bfbdea-86a7-4720-860c-6ca526ceef17",
       "name": "سارة حسن",
       "email": "sara.hassan@test.com",
       "password": "$2b$10$8ZvjMP2m96ABKMIB7KcWCujI8McvoDfr/3DME0LcghQ0jiXFpnRv6",
-      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiMmJmYmRlYS04NmE3LTQ3MjAtODYwYy02Y2E1MjZjZWVmMTciLCJpYXQiOjE3NjEwOTYwOTUsImV4cCI6MTc2MTcwMDg5NX0.Od4ZDo9KIfVov-SIKo3ISSN5ertvMjjjSoQzTBl7iHA",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiMmJmYmRlYS04NmE3LTQ3MjAtODYwYy02Y2E1MjZjZWVmMTciLCJpYXQiOjE3NjQ5NzE4MzAsImV4cCI6MTc2NTU3NjYzMH0.SWkdZWp8fl972QOtO8AE99391eOOPOpQDsRcb6PMhwA",
       "role": "MAINTENANCE_ADMIN",
       "emailVerified": "2025-10-17T23:35:48.108Z",
       "emailVerificationToken": null,
@@ -94,7 +94,7 @@
       "passwordResetExpires": null,
       "image": null,
       "createdAt": "2025-10-17T23:35:48.110Z",
-      "updatedAt": "2025-10-22T01:21:35.463Z"
+      "updatedAt": "2025-12-05T21:57:10.191Z"
     },
     {
       "id": "bb944f07-28d0-426f-99b5-a57ce1ad1cde",
@@ -114,10 +114,10 @@
     },
     {
       "id": "c6ee8602-c232-47af-be7d-a54c3e298211",
-      "name": "Kaka Mer",
+      "name": "Marwan",
       "email": "kaka.mer1998@gmail.com",
       "password": "$2b$10$9lyRjMDAoFu0zVyMuC7KJ.7cB4DZosZIl6Ab51hHMw.Y90/vw3ovm",
-      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjNmVlODYwMi1jMjMyLTQ3YWYtYmU3ZC1hNTRjM2UyOTgyMTEiLCJpYXQiOjE3NjExMDE1MjUsImV4cCI6MTc2MTcwNjMyNX0.hb-Pm4Z_0Pwvoo4Vgmebu4aCygxOlMker7KNhQOULmk",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjNmVlODYwMi1jMjMyLTQ3YWYtYmU3ZC1hNTRjM2UyOTgyMTEiLCJpYXQiOjE3NjUwNTk1MTUsImV4cCI6MTc2NTY2NDMxNX0._DifuC0G10mGXipxgRl0ppSWkimg03Rpk5SHw-enL_U",
       "role": "SUPER_ADMIN",
       "emailVerified": null,
       "emailVerificationToken": null,
@@ -126,7 +126,7 @@
       "passwordResetExpires": null,
       "image": null,
       "createdAt": "2025-10-17T23:19:30.143Z",
-      "updatedAt": "2025-10-22T02:52:05.015Z"
+      "updatedAt": "2025-12-06T22:18:35.948Z"
     },
     {
       "id": "e09f5a5d-2dff-4d0c-8d9a-d35de9bf4b4c",
@@ -165,7 +165,7 @@
       "name": "Marwan technican",
       "email": "kaka.mer1999@gmail.com",
       "password": "$2b$10$JvCP1dLTStA557YeQyljWumYPrrR.AnYaSGdwrdE0F7SjuV0GalJW",
-      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJlZThhNzM3Mi1kYmYzLTQ0NTQtYWJhNS1kZDI3ZWRjNDY3NWEiLCJpYXQiOjE3NjEwMjk1NTIsImV4cCI6MTc2MTYzNDM1Mn0.TclszHeY6-4R2rPi09TUVG15x6-Mt3mqjbMs8Yl_5To",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJlZThhNzM3Mi1kYmYzLTQ0NTQtYWJhNS1kZDI3ZWRjNDY3NWEiLCJpYXQiOjE3NjQ5NDY4NTgsImV4cCI6MTc2NTU1MTY1OH0.OoysdeTFW8mtUy3njU3Gum7bPcvEqNzxjkfkCiX7hJE",
       "role": "TECHNICIAN",
       "emailVerified": null,
       "emailVerificationToken": null,
@@ -174,7 +174,7 @@
       "passwordResetExpires": null,
       "image": null,
       "createdAt": "2025-10-21T06:49:00.535Z",
-      "updatedAt": "2025-10-21T19:36:47.585Z"
+      "updatedAt": "2025-12-05T15:00:58.998Z"
     }
   ],
   "request_categories": [
@@ -306,6 +306,27 @@
       "customIdentifier": null
     },
     {
+      "id": "24926c71-b216-485f-892f-b2a5fdcb04a4",
+      "title": "sjandxkjasnxd",
+      "description": "sjkdxnasjkxna",
+      "priority": "URGENT",
+      "status": "COMPLETED",
+      "categoryId": 3,
+      "location": "sniasojxnoia",
+      "building": "ABRAJ-2",
+      "specificLocation": "askxak",
+      "requestedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "assignedToId": "ee8a7372-dbf3-4454-aba5-dd27edc4675a",
+      "assignedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "estimatedCost": null,
+      "actualCost": null,
+      "scheduledDate": null,
+      "completedDate": "2025-12-04T11:03:49.177Z",
+      "createdAt": "2025-11-13T08:57:08.548Z",
+      "updatedAt": "2025-12-04T11:03:49.178Z",
+      "customIdentifier": "25-ABRAJ2-006"
+    },
+    {
       "id": "2560a7ec-577e-4353-ab9a-2ec3318b9e1f",
       "title": "ndcasjndajknjkanf",
       "description": "djfcnkasjnckajsfnckjasnfjan",
@@ -330,8 +351,8 @@
       "id": "25f4bebf-364a-4c48-8110-c9c10c8d21d4",
       "title": "إصلاح الباب الأمامي mec",
       "description": "الباب الأمامي لا يغلق بشكل صحيح",
-      "priority": "MEDIUM",
-      "status": "ASSIGNED",
+      "priority": "LOW",
+      "status": "CLOSED",
       "categoryId": 5,
       "location": "المدخل الرئيسي",
       "building": "المبنى ج",
@@ -344,7 +365,7 @@
       "scheduledDate": null,
       "completedDate": null,
       "createdAt": "2025-10-17T23:35:57.298Z",
-      "updatedAt": "2025-10-21T17:29:12.752Z",
+      "updatedAt": "2025-11-13T09:06:42.348Z",
       "customIdentifier": null
     },
     {
@@ -352,7 +373,7 @@
       "title": "jdncjsand",
       "description": "asjxnasjnxsda",
       "priority": "MEDIUM",
-      "status": "ASSIGNED",
+      "status": "IN_PROGRESS",
       "categoryId": 3,
       "location": "saxdnaksnda",
       "building": "LIBRARY",
@@ -365,7 +386,7 @@
       "scheduledDate": null,
       "completedDate": null,
       "createdAt": "2025-10-22T00:16:50.642Z",
-      "updatedAt": "2025-10-22T00:19:33.277Z",
+      "updatedAt": "2025-12-05T16:40:23.430Z",
       "customIdentifier": "25-LIB-003"
     },
     {
@@ -394,7 +415,7 @@
       "title": "marwan new request",
       "description": "المكيف يشتي له تبريد",
       "priority": "MEDIUM",
-      "status": "ASSIGNED",
+      "status": "COMPLETED",
       "categoryId": 3,
       "location": "البرج الغربي",
       "building": "المبنى التجاري",
@@ -405,9 +426,9 @@
       "estimatedCost": null,
       "actualCost": null,
       "scheduledDate": null,
-      "completedDate": null,
+      "completedDate": "2025-12-05T16:44:07.381Z",
       "createdAt": "2025-10-21T21:16:36.092Z",
-      "updatedAt": "2025-10-21T21:18:11.609Z",
+      "updatedAt": "2025-12-05T16:44:07.382Z",
       "customIdentifier": null
     },
     {
@@ -436,7 +457,7 @@
       "title": "اصلا الصنصير ",
       "description": "عم خميس صلحه بالله",
       "priority": "MEDIUM",
-      "status": "SUBMITTED",
+      "status": "ASSIGNED",
       "categoryId": 4,
       "location": "الطابق الاول",
       "building": "ABRAJ-2",
@@ -449,7 +470,7 @@
       "scheduledDate": null,
       "completedDate": null,
       "createdAt": "2025-10-22T00:10:01.595Z",
-      "updatedAt": "2025-10-22T00:10:01.595Z",
+      "updatedAt": "2025-12-05T16:34:09.422Z",
       "customIdentifier": "25-ABRAJ2-005"
     },
     {
@@ -457,7 +478,7 @@
       "title": "اصلاح المكيف حق استاذ عوض",
       "description": "اصلاح مكيف اشتاذ عوض حالا",
       "priority": "URGENT",
-      "status": "SUBMITTED",
+      "status": "ASSIGNED",
       "categoryId": 3,
       "location": "دور الميزانين",
       "building": "ABRAJ-2",
@@ -470,7 +491,7 @@
       "scheduledDate": null,
       "completedDate": null,
       "createdAt": "2025-10-22T00:02:19.493Z",
-      "updatedAt": "2025-10-22T00:02:19.493Z",
+      "updatedAt": "2025-12-05T18:59:27.646Z",
       "customIdentifier": "25-ABRAJ2-004"
     },
     {
@@ -495,11 +516,32 @@
       "customIdentifier": null
     },
     {
+      "id": "95d909e8-04f3-416a-b8ad-6a643fd05067",
+      "title": "Fix broken door in Building A",
+      "description": "The main entrance door to Building A is not closing properly. It appears to be an issue with the door mechanism.",
+      "priority": "MEDIUM",
+      "status": "IN_PROGRESS",
+      "categoryId": 1,
+      "location": "Main Entrance",
+      "building": "Building A",
+      "specificLocation": "Ground Floor, North Wing",
+      "requestedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "assignedToId": "ee8a7372-dbf3-4454-aba5-dd27edc4675a",
+      "assignedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "estimatedCost": null,
+      "actualCost": null,
+      "scheduledDate": null,
+      "completedDate": null,
+      "createdAt": "2025-10-23T22:04:47.407Z",
+      "updatedAt": "2025-12-05T16:38:59.225Z",
+      "customIdentifier": "25-BUILDINGA-001"
+    },
+    {
       "id": "968dd833-31e1-4289-bb37-7778b21d29b6",
       "title": "sjdnkasnd",
       "description": "djnakjdnsjnsa",
       "priority": "LOW",
-      "status": "COMPLETED",
+      "status": "REJECTED",
       "categoryId": 1,
       "location": "askncjasknck",
       "building": "cjnasjkcnas",
@@ -510,9 +552,9 @@
       "estimatedCost": null,
       "actualCost": null,
       "scheduledDate": null,
-      "completedDate": "2025-10-21T23:22:12.974Z",
+      "completedDate": null,
       "createdAt": "2025-10-21T17:42:02.167Z",
-      "updatedAt": "2025-10-21T23:22:12.975Z",
+      "updatedAt": "2025-11-03T13:22:58.796Z",
       "customIdentifier": null
     },
     {
@@ -582,6 +624,15 @@
   "request_comments": [],
   "request_status_history": [
     {
+      "id": "039f0f48-c8e1-4e86-abde-087a454e1b9e",
+      "fromStatus": "ASSIGNED",
+      "toStatus": "IN_PROGRESS",
+      "reason": null,
+      "createdAt": "2025-12-05T16:40:25.312Z",
+      "changedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "requestId": "46bd8497-79b6-47b0-9573-93e91f22a02d"
+    },
+    {
       "id": "04fa3644-5e8a-482f-8426-0bc827f89700",
       "fromStatus": "SUBMITTED",
       "toStatus": "ASSIGNED",
@@ -591,6 +642,24 @@
       "requestId": "5570cf81-e843-4257-a2ca-1f867ca1222f"
     },
     {
+      "id": "0e5f0f8e-abee-47ae-90e7-b7e826243d76",
+      "fromStatus": null,
+      "toStatus": "SUBMITTED",
+      "reason": "Request created",
+      "createdAt": "2025-10-23T22:04:50.724Z",
+      "changedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "requestId": "95d909e8-04f3-416a-b8ad-6a643fd05067"
+    },
+    {
+      "id": "1610ce5d-f6b1-4504-9207-84016ef42f4e",
+      "fromStatus": "SUBMITTED",
+      "toStatus": "ASSIGNED",
+      "reason": "Request assigned to technician",
+      "createdAt": "2025-11-13T08:59:08.206Z",
+      "changedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "requestId": "24926c71-b216-485f-892f-b2a5fdcb04a4"
+    },
+    {
       "id": "16fa8d3f-e848-4380-8489-035ac303a7a2",
       "fromStatus": null,
       "toStatus": "SUBMITTED",
@@ -598,6 +667,15 @@
       "createdAt": "2025-10-21T17:42:04.191Z",
       "changedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
       "requestId": "968dd833-31e1-4289-bb37-7778b21d29b6"
+    },
+    {
+      "id": "257d0517-b4f8-42b0-8f93-91c6e6aff093",
+      "fromStatus": "COMPLETED",
+      "toStatus": "CLOSED",
+      "reason": "ماقفلوة ماحصلو السامان",
+      "createdAt": "2025-11-13T09:05:50.465Z",
+      "changedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "requestId": "25f4bebf-364a-4c48-8110-c9c10c8d21d4"
     },
     {
       "id": "25f399df-8044-46cd-84c4-de46b4feb4fc",
@@ -618,6 +696,15 @@
       "requestId": "46bd8497-79b6-47b0-9573-93e91f22a02d"
     },
     {
+      "id": "28aea232-6a3f-4ead-b0df-8e6d72906082",
+      "fromStatus": "IN_PROGRESS",
+      "toStatus": "COMPLETED",
+      "reason": null,
+      "createdAt": "2025-12-05T16:44:10.230Z",
+      "changedById": "b2bfbdea-86a7-4720-860c-6ca526ceef17",
+      "requestId": "5570cf81-e843-4257-a2ca-1f867ca1222f"
+    },
+    {
       "id": "2a1a9eab-c867-4183-9364-5ce3ee19dc67",
       "fromStatus": "ASSIGNED",
       "toStatus": "IN_PROGRESS",
@@ -634,6 +721,24 @@
       "createdAt": "2025-10-21T21:27:32.919Z",
       "changedById": "b2bfbdea-86a7-4720-860c-6ca526ceef17",
       "requestId": "be56b6ff-1773-45c5-b187-217bf32e423c"
+    },
+    {
+      "id": "3cc1fa5f-d3ef-4132-84a3-73ed08d293ee",
+      "fromStatus": "IN_PROGRESS",
+      "toStatus": "REJECTED",
+      "reason": "coz of nothing",
+      "createdAt": "2025-11-03T13:23:00.918Z",
+      "changedById": "b2bfbdea-86a7-4720-860c-6ca526ceef17",
+      "requestId": "968dd833-31e1-4289-bb37-7778b21d29b6"
+    },
+    {
+      "id": "40b0e2b1-037d-499e-9d37-46101859b10b",
+      "fromStatus": "ASSIGNED",
+      "toStatus": "IN_PROGRESS",
+      "reason": null,
+      "createdAt": "2025-12-05T16:42:39.083Z",
+      "changedById": "b2bfbdea-86a7-4720-860c-6ca526ceef17",
+      "requestId": "5570cf81-e843-4257-a2ca-1f867ca1222f"
     },
     {
       "id": "66b37e7a-feb6-449b-8e49-51eff2dba790",
@@ -663,6 +768,15 @@
       "requestId": "2560a7ec-577e-4353-ab9a-2ec3318b9e1f"
     },
     {
+      "id": "6d0d7955-cf0f-420c-9864-26b5f589b70b",
+      "fromStatus": null,
+      "toStatus": "SUBMITTED",
+      "reason": "Request created",
+      "createdAt": "2025-11-13T08:57:10.566Z",
+      "changedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "requestId": "24926c71-b216-485f-892f-b2a5fdcb04a4"
+    },
+    {
       "id": "6db44bd2-f8ad-40f8-9d91-549406b70af0",
       "fromStatus": "ASSIGNED",
       "toStatus": "IN_PROGRESS",
@@ -679,6 +793,15 @@
       "createdAt": "2025-10-22T00:02:21.992Z",
       "changedById": "2aa94a61-c244-4d6c-8a86-6f4780d05006",
       "requestId": "914acb13-71e9-4e3a-946e-89982e256482"
+    },
+    {
+      "id": "9025afdd-53c0-4523-931b-c2342300ad12",
+      "fromStatus": "SUBMITTED",
+      "toStatus": "ASSIGNED",
+      "reason": "Request assigned to technician",
+      "createdAt": "2025-10-24T00:48:21.255Z",
+      "changedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "requestId": "95d909e8-04f3-416a-b8ad-6a643fd05067"
     },
     {
       "id": "9b5660ec-c0f8-4996-a31d-f3c6e77fc125",
@@ -699,6 +822,15 @@
       "requestId": "968dd833-31e1-4289-bb37-7778b21d29b6"
     },
     {
+      "id": "a188c353-04e6-4c37-b9fb-9f39caacd2d7",
+      "fromStatus": "ASSIGNED",
+      "toStatus": "IN_PROGRESS",
+      "reason": null,
+      "createdAt": "2025-12-04T10:59:54.471Z",
+      "changedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "requestId": "24926c71-b216-485f-892f-b2a5fdcb04a4"
+    },
+    {
       "id": "a4d3d3eb-9452-48bb-8353-6dc9e634e40b",
       "fromStatus": null,
       "toStatus": "SUBMITTED",
@@ -706,6 +838,24 @@
       "createdAt": "2025-10-22T00:16:53.185Z",
       "changedById": "2aa94a61-c244-4d6c-8a86-6f4780d05006",
       "requestId": "46bd8497-79b6-47b0-9573-93e91f22a02d"
+    },
+    {
+      "id": "a68c088c-2144-4649-888c-a60e98a84bb6",
+      "fromStatus": "ASSIGNED",
+      "toStatus": "IN_PROGRESS",
+      "reason": null,
+      "createdAt": "2025-12-05T16:39:03.776Z",
+      "changedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "requestId": "95d909e8-04f3-416a-b8ad-6a643fd05067"
+    },
+    {
+      "id": "a8124aa9-fdaf-46c2-87d0-145fd783f0d7",
+      "fromStatus": "ASSIGNED",
+      "toStatus": "IN_PROGRESS",
+      "reason": null,
+      "createdAt": "2025-11-13T09:04:40.570Z",
+      "changedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "requestId": "25f4bebf-364a-4c48-8110-c9c10c8d21d4"
     },
     {
       "id": "aa6fbc64-24c6-4372-8443-b6b3dd4225d8",
@@ -758,6 +908,51 @@
       "toStatus": "COMPLETED",
       "reason": null,
       "createdAt": "2025-10-21T23:22:14.578Z",
+      "changedById": "b2bfbdea-86a7-4720-860c-6ca526ceef17",
+      "requestId": "968dd833-31e1-4289-bb37-7778b21d29b6"
+    },
+    {
+      "id": "be1555fb-6a4d-409a-8d4b-f036fb7142da",
+      "fromStatus": "IN_PROGRESS",
+      "toStatus": "COMPLETED",
+      "reason": null,
+      "createdAt": "2025-11-13T09:05:06.787Z",
+      "changedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "requestId": "25f4bebf-364a-4c48-8110-c9c10c8d21d4"
+    },
+    {
+      "id": "c125583d-4a1a-491f-aa0e-68526374bf19",
+      "fromStatus": "IN_PROGRESS",
+      "toStatus": "COMPLETED",
+      "reason": null,
+      "createdAt": "2025-12-04T11:03:51.967Z",
+      "changedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "requestId": "24926c71-b216-485f-892f-b2a5fdcb04a4"
+    },
+    {
+      "id": "e32f9222-e9cb-4854-b6a9-470852fcaff2",
+      "fromStatus": "SUBMITTED",
+      "toStatus": "ASSIGNED",
+      "reason": null,
+      "createdAt": "2025-12-05T16:34:11.526Z",
+      "changedById": "b2bfbdea-86a7-4720-860c-6ca526ceef17",
+      "requestId": "8e968dcc-a459-4d8f-922d-88ebfb35d37b"
+    },
+    {
+      "id": "e67ebb9e-d791-45d7-82f6-d2d781af51e7",
+      "fromStatus": "SUBMITTED",
+      "toStatus": "ASSIGNED",
+      "reason": null,
+      "createdAt": "2025-12-05T18:59:29.923Z",
+      "changedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "requestId": "914acb13-71e9-4e3a-946e-89982e256482"
+    },
+    {
+      "id": "ee1b1239-791b-4999-a6ab-104e3f9280f0",
+      "fromStatus": "COMPLETED",
+      "toStatus": "IN_PROGRESS",
+      "reason": null,
+      "createdAt": "2025-11-03T13:22:31.806Z",
       "changedById": "b2bfbdea-86a7-4720-860c-6ca526ceef17",
       "requestId": "968dd833-31e1-4289-bb37-7778b21d29b6"
     }
@@ -814,6 +1009,16 @@
       "requestId": "968dd833-31e1-4289-bb37-7778b21d29b6"
     },
     {
+      "id": "51594aea-66ec-4cce-abe2-13250469f987",
+      "fromTechnicianId": null,
+      "toTechnicianId": "ee8a7372-dbf3-4454-aba5-dd27edc4675a",
+      "assignmentType": "INITIAL_ASSIGNMENT",
+      "reason": null,
+      "createdAt": "2025-11-13T08:59:06.862Z",
+      "assignedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "requestId": "24926c71-b216-485f-892f-b2a5fdcb04a4"
+    },
+    {
       "id": "7545d375-e10a-4fa0-80be-009d26b2fc2b",
       "fromTechnicianId": null,
       "toTechnicianId": "ee8a7372-dbf3-4454-aba5-dd27edc4675a",
@@ -822,6 +1027,16 @@
       "createdAt": "2025-10-21T21:18:14.189Z",
       "assignedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
       "requestId": "5570cf81-e843-4257-a2ca-1f867ca1222f"
+    },
+    {
+      "id": "9a412c9a-3d4f-453c-a2b8-b03fe6168a4a",
+      "fromTechnicianId": null,
+      "toTechnicianId": "ee8a7372-dbf3-4454-aba5-dd27edc4675a",
+      "assignmentType": "INITIAL_ASSIGNMENT",
+      "reason": null,
+      "createdAt": "2025-10-24T00:48:19.306Z",
+      "assignedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "requestId": "95d909e8-04f3-416a-b8ad-6a643fd05067"
     },
     {
       "id": "c8ff2dda-8cdf-4fdf-b1d6-a5bc8792077b",
@@ -845,6 +1060,19 @@
     }
   ],
   "request_identifiers": [
+    {
+      "id": "0279f65b-755b-466d-8be4-3ff7f41b9c7a",
+      "identifier": "25-BUILDINGA-001",
+      "building": "Building A",
+      "year": 2025,
+      "sequence": 1,
+      "isActive": true,
+      "customPattern": null,
+      "customSequence": null,
+      "createdBy": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "createdAt": "2025-10-23T22:04:45.757Z",
+      "updatedAt": "2025-10-23T22:04:45.757Z"
+    },
     {
       "id": "0920c684-e904-45e3-9bca-fcfcb0147fa3",
       "identifier": "25-ABRAJ1-002",
@@ -1028,6 +1256,19 @@
       "updatedAt": "2025-10-22T00:16:48.856Z"
     },
     {
+      "id": "6087d03e-8655-487d-8ca1-136cd4cb1e57",
+      "identifier": "25-ABRAJ2-006",
+      "building": "ABRAJ-2",
+      "year": 2025,
+      "sequence": 6,
+      "isActive": true,
+      "customPattern": null,
+      "customSequence": null,
+      "createdBy": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "createdAt": "2025-11-13T08:57:07.189Z",
+      "updatedAt": "2025-11-13T08:57:07.189Z"
+    },
+    {
       "id": "6a65bb64-8d3c-443c-9df1-890d5fc53290",
       "identifier": "25-SPORT-002",
       "building": "SPORTS",
@@ -1173,6 +1414,19 @@
       "createdBy": "c6ee8602-c232-47af-be7d-a54c3e298211"
     },
     {
+      "id": "10f465bb-3a66-4873-b8c7-53a2c9595b73",
+      "buildingName": "Building A",
+      "buildingCode": "BUILDINGA",
+      "displayName": "Building Building A",
+      "currentSequence": 1,
+      "lastResetYear": 2025,
+      "allowCustomId": false,
+      "isActive": true,
+      "createdAt": "2025-10-23T22:04:41.661Z",
+      "updatedAt": "2025-10-23T22:04:43.563Z",
+      "createdBy": "c6ee8602-c232-47af-be7d-a54c3e298211"
+    },
+    {
       "id": "501222cd-d11e-4e5a-bfbd-b052cd5f68a0",
       "buildingName": "B",
       "buildingCode": "B",
@@ -1255,14 +1509,99 @@
       "buildingName": "ABRAJ-2",
       "buildingCode": "ABRAJ2",
       "displayName": "برج ثاني / Tower Two",
-      "currentSequence": 5,
+      "currentSequence": 6,
       "lastResetYear": 2025,
       "allowCustomId": true,
       "isActive": true,
       "createdAt": "2025-10-21T22:11:15.723Z",
-      "updatedAt": "2025-10-22T00:09:57.349Z",
+      "updatedAt": "2025-11-13T08:57:05.396Z",
       "createdBy": "c6ee8602-c232-47af-be7d-a54c3e298211"
     }
   ],
-  "file_attachments": []
+  "file_attachments": [
+    {
+      "id": "96bfca8f-6e68-48c0-a01b-3c067d38931d",
+      "originalName": "lightbulb.png",
+      "fileName": "MAINTENANCE_REQUEST/c6ee8602-c232-47af-be7d-a54c3e298211/2025-11-10T12-08-24-425Z-90ead28ce3d78e1c_lightbulb.png",
+      "filePath": "MAINTENANCE_REQUEST/c6ee8602-c232-47af-be7d-a54c3e298211/2025-11-10T12-08-24-425Z-90ead28ce3d78e1c_lightbulb.png",
+      "fileSize": 16885,
+      "mimeType": "image/png",
+      "fileExtension": "png",
+      "checksum": "783795012e5603d8bbb558bf41fd3fb76eb65a9b87176722efb396f46a1a6895",
+      "width": null,
+      "height": null,
+      "duration": null,
+      "processingStatus": "COMPLETED",
+      "thumbnailPath": null,
+      "isPublic": false,
+      "isScanned": false,
+      "scanResult": null,
+      "isValidated": true,
+      "entityType": "MAINTENANCE_REQUEST",
+      "entityId": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "uploadedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "uploadIp": "::1",
+      "expiresAt": "2025-11-10T12:33:39.398Z",
+      "downloadCount": 0,
+      "lastAccessedAt": null,
+      "createdAt": "2025-11-10T12:08:26.074Z",
+      "updatedAt": "2025-11-10T12:33:39.399Z"
+    },
+    {
+      "id": "c1eed803-c8bf-4cf3-b3e3-2bfbf0285867",
+      "originalName": "Frame 2095585160.png",
+      "fileName": "MAINTENANCE_REQUEST/c6ee8602-c232-47af-be7d-a54c3e298211/2025-11-10T12-09-17-611Z-97e88dabecafd085_Frame_2095585160.png",
+      "filePath": "MAINTENANCE_REQUEST/c6ee8602-c232-47af-be7d-a54c3e298211/2025-11-10T12-09-17-611Z-97e88dabecafd085_Frame_2095585160.png",
+      "fileSize": 27544,
+      "mimeType": "image/png",
+      "fileExtension": "png",
+      "checksum": "effce0b226e55d07444eb32657f5c4798e52c547712819fd771b092d4e3680e7",
+      "width": null,
+      "height": null,
+      "duration": null,
+      "processingStatus": "COMPLETED",
+      "thumbnailPath": null,
+      "isPublic": true,
+      "isScanned": false,
+      "scanResult": null,
+      "isValidated": true,
+      "entityType": "MAINTENANCE_REQUEST",
+      "entityId": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "uploadedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "uploadIp": "::1",
+      "expiresAt": null,
+      "downloadCount": 0,
+      "lastAccessedAt": null,
+      "createdAt": "2025-11-10T12:09:18.706Z",
+      "updatedAt": "2025-11-10T12:33:29.385Z"
+    },
+    {
+      "id": "e15d07b4-c644-43d2-ba26-7815b40fef49",
+      "originalName": "marwan_img_linkedin (1).png",
+      "fileName": "MAINTENANCE_REQUEST/c6ee8602-c232-47af-be7d-a54c3e298211/2025-11-10T12-10-11-004Z-bf3b0f817847a88a_marwan_img_linkedin_(1).png",
+      "filePath": "MAINTENANCE_REQUEST/c6ee8602-c232-47af-be7d-a54c3e298211/2025-11-10T12-10-11-004Z-bf3b0f817847a88a_marwan_img_linkedin_(1).png",
+      "fileSize": 601881,
+      "mimeType": "image/png",
+      "fileExtension": "png",
+      "checksum": "6ab70587bd8e4ca25554cd7cb3cce90aa06439dc40f938dcfd7fce65f4be5228",
+      "width": null,
+      "height": null,
+      "duration": null,
+      "processingStatus": "COMPLETED",
+      "thumbnailPath": null,
+      "isPublic": true,
+      "isScanned": false,
+      "scanResult": null,
+      "isValidated": true,
+      "entityType": "MAINTENANCE_REQUEST",
+      "entityId": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "uploadedById": "c6ee8602-c232-47af-be7d-a54c3e298211",
+      "uploadIp": "::1",
+      "expiresAt": "2025-11-10T12:57:58.040Z",
+      "downloadCount": 1,
+      "lastAccessedAt": "2025-11-10T12:32:59.131Z",
+      "createdAt": "2025-11-10T12:10:12.165Z",
+      "updatedAt": "2025-11-10T12:57:58.041Z"
+    }
+  ]
 }
