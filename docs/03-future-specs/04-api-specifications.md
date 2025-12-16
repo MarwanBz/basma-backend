@@ -188,11 +188,13 @@ interface LogoutRequest {
 interface RequestsQuery {
   page?: number // default: 1, min: 1
   limit?: number // default: 20, min: 1, max: 100
-  status?: 'pending' | 'assigned' | 'in_progress' | 'completed' | 'cancelled'
+  status?: 'pending' | 'assigned' | 'in_progress' | 'completed' | 'cancelled' | 'closed' | 'customer_rejected'
   priority?: 'low' | 'medium' | 'high' | 'urgent'
   assignedTo?: string // technician ID
+  customerConfirmationStatus?: 'pending' | 'confirmed' | 'rejected' | 'overridden'
+  awaitingConfirmation?: boolean // Filter for requests awaiting customer confirmation
   search?: string // search in title, description, location, customIdentifier
-  sortBy?: 'createdAt' | 'updatedAt' | 'dueDate' | 'priority'
+  sortBy?: 'createdAt' | 'updatedAt' | 'dueDate' | 'priority' | 'customerConfirmedAt'
   sortOrder?: 'asc' | 'desc'
   dateFrom?: string // ISO date
   dateTo?: string // ISO date
@@ -220,7 +222,7 @@ interface MaintenanceRequest {
   description: string
   location: string
   priority: 'low' | 'medium' | 'high' | 'urgent'
-  status: 'pending' | 'assigned' | 'in_progress' | 'completed' | 'cancelled'
+  status: 'pending' | 'assigned' | 'in_progress' | 'completed' | 'cancelled' | 'closed' | 'customer_rejected'
   category?: string
   estimatedCost?: number
   actualCost?: number
@@ -247,6 +249,14 @@ interface MaintenanceRequest {
   updatedAt: string
   parts?: RequestPart[]
   history?: RequestHistory[]
+  // Customer confirmation fields
+  customerConfirmationStatus?: 'pending' | 'confirmed' | 'rejected' | 'overridden'
+  customerConfirmedAt?: string
+  customerRejectedAt?: string
+  customerConfirmationComment?: string
+  customerRejectionReason?: string
+  closedWithoutConfirmation?: boolean
+  adminOverrideReason?: string
 }
 \`\`\`
 
@@ -352,6 +362,131 @@ interface AssignTechnicianBody {
 interface ApproveRequestBody {
   notes?: string
   approvedCost?: number
+}
+\`\`\`
+
+### 4.8 POST /requests/:id/confirm-completion
+**Description**: Customer confirms that maintenance work is completed to their satisfaction
+
+**Authentication**: Customer only (must own the request)
+
+**Request Body**:
+\`\`\`typescript
+interface ConfirmCompletionBody {
+  comment?: string  // Optional feedback about the completed work
+}
+\`\`\`
+
+**Response**:
+\`\`\`typescript
+interface ConfirmCompletionResponse {
+  success: boolean
+  data: {
+    request: {
+      id: string
+      status: 'closed'  // Status changes to CLOSED
+      customerConfirmationStatus: 'confirmed'
+      customerConfirmedAt: string
+      customerConfirmationComment?: string
+    }
+  }
+}
+\`\`\`
+
+**Status Codes**:
+- `200`: Success - request confirmed and closed
+- `400`: Bad request - request not in COMPLETED status
+- `403`: Forbidden - not the request owner
+- `404`: Request not found
+- `409`: Conflict - already confirmed
+
+### 4.9 POST /requests/:id/reject-completion
+**Description**: Customer rejects completion and reports issues with the work
+
+**Authentication**: Customer only (must own the request)
+
+**Request Body**:
+\`\`\`typescript
+interface RejectCompletionBody {
+  reason: string     // Required reason for rejection
+  comment?: string   // Additional comments about issues
+}
+\`\`\`
+
+**Response**:
+\`\`\`typescript
+interface RejectCompletionResponse {
+  success: boolean
+  data: {
+    request: {
+      id: string
+      status: 'customer_rejected'  // Status changes to CUSTOMER_REJECTED
+      customerConfirmationStatus: 'rejected'
+      customerRejectedAt: string
+      customerRejectionReason: string
+      customerConfirmationComment?: string
+    }
+  }
+}
+\`\`\`
+
+**Status Codes**:
+- `200`: Success - rejection recorded
+- `400`: Bad request - request not in COMPLETED status
+- `403`: Forbidden - not the request owner
+- `404`: Request not found
+- `409`: Conflict - already confirmed/rejected
+
+### 4.10 GET /requests/:id/confirmation-status
+**Description**: Get current customer confirmation status for a request
+
+**Authentication**: Customer (own requests), Technician (assigned), Admin, Super Admin
+
+**Response**:
+\`\`\`typescript
+interface ConfirmationStatusResponse {
+  success: boolean
+  data: {
+    requestId: string
+    status: 'pending' | 'confirmed' | 'rejected'
+    completedDate?: string
+    daysSinceCompletion?: number
+    canConfirm: boolean
+    canReject: boolean
+    confirmedAt?: string
+    rejectedAt?: string
+    customerComment?: string
+    rejectionReason?: string
+    autoConfirmDate?: string  // When request will auto-confirm (3 days after completion)
+  }
+}
+\`\`\`
+
+### 4.11 POST /requests/:id/close-without-confirmation
+**Description**: Admin closes request without customer confirmation (override)
+
+**Authentication**: Admin or Super Admin only
+
+**Request Body**:
+\`\`\`typescript
+interface CloseWithoutConfirmationBody {
+  reason: string  // Required reason for override
+}
+\`\`\`
+
+**Response**:
+\`\`\`typescript
+interface CloseOverrideResponse {
+  success: boolean
+  data: {
+    request: {
+      id: string
+      status: 'closed'
+      customerConfirmationStatus: 'overridden'
+      closedWithoutConfirmation: true
+      adminOverrideReason: string
+    }
+  }
 }
 \`\`\`
 

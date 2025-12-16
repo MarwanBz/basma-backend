@@ -1,0 +1,377 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Basma - Customer Confirmation API",
+		"description": "Postman collection for Customer Completion Confirmation API endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Customer Confirmation",
+			"item": [
+				{
+					"name": "Confirm Completion",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Success is true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Request status is closed\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.request.status).to.eql(\"closed\");",
+									"});",
+									"",
+									"pm.test(\"Confirmation status is confirmed\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.request.customerConfirmationStatus).to.eql(\"confirmed\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customer_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"comment\": \"Work looks great! Thank you for the quick service.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/requests/{{request_id}}/confirm-completion",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"requests",
+								"{{request_id}}",
+								"confirm-completion"
+							]
+						},
+						"description": "Confirm that maintenance work has been completed to your satisfaction. This changes the request status from COMPLETED to CLOSED."
+					},
+					"response": []
+				},
+				{
+					"name": "Reject Completion",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Success is true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Request status is customer_rejected\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.request.status).to.eql(\"customer_rejected\");",
+									"});",
+									"",
+									"pm.test(\"Confirmation status is rejected\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.request.customerConfirmationStatus).to.eql(\"rejected\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customer_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Work not completed properly\",\n  \"comment\": \"The door still doesn't close correctly. Please fix again.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/requests/{{request_id}}/reject-completion",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"requests",
+								"{{request_id}}",
+								"reject-completion"
+							]
+						},
+						"description": "Reject the completion and report issues with the work. This changes the request status from COMPLETED to CUSTOMER_REJECTED."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Confirmation Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Success is true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Has required fields\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('status');",
+									"    pm.expect(jsonData.data).to.have.property('canConfirm');",
+									"    pm.expect(jsonData.data).to.have.property('canReject');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customer_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/requests/{{request_id}}/confirmation-status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"requests",
+								"{{request_id}}",
+								"confirmation-status"
+							]
+						},
+						"description": "Check the current confirmation status of a request and whether you can confirm or reject it."
+					},
+					"response": []
+				},
+				{
+					"name": "Close Without Confirmation (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Success is true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Request status is closed\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.request.status).to.eql(\"closed\");",
+									"});",
+									"",
+									"pm.test(\"Confirmation status is overridden\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.request.customerConfirmationStatus).to.eql(\"overridden\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Customer confirmed verbally over phone and requested immediate closure. Email documentation sent for records.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/requests/{{request_id}}/close-without-confirmation",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"requests",
+								"{{request_id}}",
+								"close-without-confirmation"
+							]
+						},
+						"description": "Admin endpoint to close a request without customer confirmation. Requires admin permissions and a valid reason."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for customer confirmation of completed maintenance work"
+		},
+		{
+			"name": "Helper Requests",
+			"item": [
+				{
+					"name": "List Awaiting Confirmation",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customer_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/requests?awaitingConfirmation=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"requests"
+							],
+							"query": [
+								{
+									"key": "awaitingConfirmation",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Get all requests that are awaiting customer confirmation"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Request Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customer_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/requests/{{request_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"requests",
+								"{{request_id}}"
+							]
+						},
+						"description": "Get full details of a specific request including confirmation status"
+					},
+					"response": []
+				}
+			],
+			"description": "Helper endpoints to find and view requests that need confirmation"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3001/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "customer_token",
+			"value": "",
+			"type": "string",
+			"description": "JWT token for a customer user"
+		},
+		{
+			"key": "admin_token",
+			"value": "",
+			"type": "string",
+			"description": "JWT token for an admin user"
+		},
+		{
+			"key": "request_id",
+			"value": "",
+			"type": "string",
+			"description": "ID of a request in COMPLETED status"
+		}
+	]
+}

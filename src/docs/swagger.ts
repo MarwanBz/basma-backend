@@ -5,9 +5,9 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Express TypeScript API',
+      title: 'Basma Maintenance System API',
       version,
-      description: 'API documentation for Express TypeScript Boilerplate',
+      description: 'Comprehensive API documentation for Basma Maintenance Management System',
       license: {
         name: 'MIT',
         url: 'https://opensource.org/licenses/MIT',
@@ -49,7 +49,11 @@ const options: swaggerJsdoc.Options = {
       bearerAuth: [],
     }],
   },
-  apis: ['./src/routes/*.ts', './src/docs/schemas/*.yml'],
+  apis: [
+    './src/routes/*.ts',
+    './src/docs/schemas/*.yml',
+    './src/docs/schemas/*.yaml'
+  ],
 };
 
 export const specs = swaggerJsdoc(options); 
