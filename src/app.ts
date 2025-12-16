@@ -30,6 +30,15 @@ import superAdminRoutes from "@/routes/super-admin.routes";
 import swaggerUi from "swagger-ui-express";
 import technicianRoutes from "@/routes/technician.routes";
 import userRoutes from "@/routes/user.routes";
+// import notificationRoutes from "@/routes/notificationRoutes";
+var admin = require("firebase-admin");
+
+var serviceAccount = require("../config/firebase-service-account.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
 
 const app = express();
 
@@ -95,7 +104,8 @@ app.use("/api/v1/notifications", notificationRoutes);
 // app.use("/api/v1/files", fileRoutes);
 app.use("/api/v1/storage", storageRoutes);
 // DEPRECATED: FCM notification routes - moved to src/deprecated/notifications/
-// app.use("/api/v1/notifications", fcmRoutes);
+// const notificationRoutes = require("@/routes/notificationRoutes");
+app.use("/api/v1/notifications", notificationRoutes);
 
 // Monitoring Routes (consolidated - removed duplicate)
 app.use("/api/v1/monitoring", monitoringRoutes);
