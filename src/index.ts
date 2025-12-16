@@ -3,6 +3,7 @@ import { ENV } from "@/config/env";
 import { logger } from "@/config/logger";
 import prisma from "@/config/database";
 import { WebSocketService } from "@/services/websocket.service";
+import { startRequestAutoCloseJob } from "@/jobs/requestAutoClose.job";
 
 const server = app.listen(ENV.PORT, () => {
   logger.info(`Server running on port ${ENV.PORT} in ${ENV.NODE_ENV} mode`);
@@ -10,6 +11,11 @@ const server = app.listen(ENV.PORT, () => {
 
 // Initialize WebSocket service
 WebSocketService.getInstance(server);
+
+// Start auto-close job (skip during tests)
+if (ENV.NODE_ENV !== "test") {
+  startRequestAutoCloseJob();
+}
 
 // Graceful shutdown handler
 const shutdown = async () => {

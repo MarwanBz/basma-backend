@@ -3,8 +3,11 @@ import {
   assignRequestSchema,
   createRequestSchema,
   deleteRequestSchema,
+  getConfirmationStatusSchema,
   getRequestByIdSchema,
   getRequestsQuerySchema,
+  confirmCompletionSchema,
+  rejectCompletionSchema,
   selfAssignRequestSchema,
   updateRequestSchema,
   updateRequestStatusSchema,
@@ -110,7 +113,17 @@ const fileController = new FileController(fileService);
  *           enum: [LOW, MEDIUM, HIGH, URGENT]
  *         status:
  *           type: string
- *           enum: [DRAFT, SUBMITTED, ASSIGNED, IN_PROGRESS, COMPLETED, CLOSED, REJECTED]
+ *           enum:
+ *             [
+ *               DRAFT,
+ *               SUBMITTED,
+ *               ASSIGNED,
+ *               IN_PROGRESS,
+ *               COMPLETED,
+ *               CUSTOMER_REJECTED,
+ *               CLOSED,
+ *               REJECTED,
+ *             ]
  *         location:
  *           type: string
  *         building:
@@ -441,7 +454,17 @@ router.post(
  *         name: status
  *         schema:
  *           type: string
- *           enum: [DRAFT, SUBMITTED, ASSIGNED, IN_PROGRESS, COMPLETED, CLOSED, REJECTED]
+ *           enum:
+ *             [
+ *               DRAFT,
+ *               SUBMITTED,
+ *               ASSIGNED,
+ *               IN_PROGRESS,
+ *               COMPLETED,
+ *               CUSTOMER_REJECTED,
+ *               CLOSED,
+ *               REJECTED,
+ *             ]
  *       - in: query
  *         name: priority
  *         schema:
@@ -739,7 +762,17 @@ router.post(
  *             properties:
  *               status:
  *                 type: string
- *                 enum: [DRAFT, SUBMITTED, ASSIGNED, IN_PROGRESS, COMPLETED, CLOSED, REJECTED]
+ *                 enum:
+ *                   [
+ *                     DRAFT,
+ *                     SUBMITTED,
+ *                     ASSIGNED,
+ *                     IN_PROGRESS,
+ *                     COMPLETED,
+ *                     CUSTOMER_REJECTED,
+ *                     CLOSED,
+ *                     REJECTED,
+ *                   ]
  *               reason:
  *                 type: string
  *                 maxLength: 500
@@ -763,6 +796,124 @@ router.patch(
   "/:id/status",
   validateRequest(updateRequestStatusSchema),
   requestController.updateStatus
+);
+
+/**
+ * @swagger
+ * /api/v1/requests/{id}/confirm-completion:
+ *   post:
+ *     summary: Confirm request completion (customer or admin override)
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               comment:
+ *                 type: string
+ *                 maxLength: 2000
+ *     responses:
+ *       200:
+ *         description: Request confirmed and closed
+ *       400:
+ *         description: Invalid state for confirmation
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
+router.post(
+  "/:id/confirm-completion",
+  validateRequest(confirmCompletionSchema),
+  requestController.confirmCompletion
+);
+
+/**
+ * @swagger
+ * /api/v1/requests/{id}/reject-completion:
+ *   post:
+ *     summary: Reject request completion (customer)
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - reason
+ *             properties:
+ *               reason:
+ *                 type: string
+ *                 minLength: 3
+ *                 maxLength: 2000
+ *               comment:
+ *                 type: string
+ *                 maxLength: 2000
+ *     responses:
+ *       200:
+ *         description: Request marked as CUSTOMER_REJECTED
+ *       400:
+ *         description: Invalid state for rejection
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
+router.post(
+  "/:id/reject-completion",
+  validateRequest(rejectCompletionSchema),
+  requestController.rejectCompletion
+);
+
+/**
+ * @swagger
+ * /api/v1/requests/{id}/confirmation-status:
+ *   get:
+ *     summary: Get confirmation status for a request
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Confirmation status payload
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Request not found
+ */
+router.get(
+  "/:id/confirmation-status",
+  validateRequest(getConfirmationStatusSchema),
+  requestController.getConfirmationStatus
 );
 
 /**

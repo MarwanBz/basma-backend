@@ -10,6 +10,16 @@ When a technician or super admin marks a maintenance request as "COMPLETED", the
 
 ---
 
+## ✅ Current Scope (this iteration)
+
+- Notifications are **out of scope** (to be added later).
+- Auto-confirm after **3 days** with no customer action; mark as `CLOSED`.
+- Admin can manually close after timeout (override).
+- Confirmation is irreversible for customers; only admin can reopen after confirm.
+- Technician can revert `COMPLETED → IN_PROGRESS` only while not confirmed.
+
+---
+
 ## 🔍 Current State Analysis
 
 ### Current Flow
@@ -57,20 +67,23 @@ model maintenance_request {
 
 ### 1. Notification to Customer
 
+**Status:** Deferred (not in current scope; add later)
+
 **When:** Status changes to `COMPLETED` by technician or super admin
 
-**What to Send:**
+**What to Send (future):**
 
 - Push notification (if FCM is re-enabled)
 - Email notification (optional)
 - In-app notification (if implemented)
 
-**Notification Content:**
+**Notification Content (future):**
 
 - Request title/identifier
 - Message: "Your maintenance request has been marked as completed. Please confirm if the work is done to your satisfaction."
 - Deep link to request details page
 - Action buttons: "Confirm" / "Request Changes"
+- with a rate system or feedback message.
 
 ### 2. Customer Confirmation Mechanism
 
@@ -87,6 +100,7 @@ model maintenance_request {
 1. **Confirm Completion** → Request moves to `CLOSED` status
 2. **Reject/Request Changes** → Request moves to `CUSTOMER_REJECTED` or back to `IN_PROGRESS`
 3. **Add Comment** → Optional feedback about the completion
+4. **No Response** → Auto-confirm after 3 days → `CLOSED` (admin can also close after timeout)
 
 ### 3. Database Changes Required
 
@@ -155,8 +169,9 @@ GET /api/v1/requests/:id/confirmation-status
 
 ```
 PATCH /api/v1/requests/:id/status
-  - When changing to COMPLETED, trigger customer notification
-  - Add validation: Cannot move from COMPLETED to CLOSED without customer confirmation
+  - When changing to COMPLETED, set confirmation status to PENDING (notifications deferred)
+  - Add validation: Cannot move from COMPLETED to CLOSED without customer confirmation or admin override
+  - Allow technician revert to IN_PROGRESS only while not confirmed
 ```
 
 ---
@@ -165,12 +180,9 @@ PATCH /api/v1/requests/:id/status
 
 ### 1. **What if customer never confirms?**
 
-- **Option A**: Auto-confirm after X days (e.g., 7 days)
-- **Option B**: Send reminder notifications (daily/weekly)
-- **Option C**: Admin can manually close after customer timeout
-- **Option D**: Request stays in COMPLETED status indefinitely
-
-**Recommendation**: Option B + Option C (reminders + admin override)
+- **Decision (current scope)**: Auto-confirm after **3 days** → `CLOSED`.
+- Admin can manually close after timeout (override).
+- Reminders/notifications deferred to a future phase.
 
 ### 2. **What if customer rejects completion?**
 
@@ -225,9 +237,10 @@ Current Rules:
 
 New Rules Needed:
 - COMPLETED → CLOSED: Requires customer confirmation OR admin override
-- COMPLETED → CUSTOMER_REJECTED: Customer action
+- COMPLETED → CUSTOMER_REJECTED: Customer action (via reject endpoint)
 - CUSTOMER_REJECTED → IN_PROGRESS: Admin/Technician action
-- COMPLETED → IN_PROGRESS: Technician can revert if not confirmed
+- COMPLETED → IN_PROGRESS: Technician can revert if not confirmed; after confirmation only admin can reopen
+- COMPLETED → CLOSED (auto): Auto-confirm after 3 days with no response
 ```
 
 ### 10. **Concurrent Updates**

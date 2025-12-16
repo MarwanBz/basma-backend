@@ -6,13 +6,17 @@ const requestPrioritySchema = z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]);
 // Request Status enum validation
 const requestStatusSchema = z.enum([
   "DRAFT",
-  "SUBMITTED", 
+  "SUBMITTED",
   "ASSIGNED",
   "IN_PROGRESS",
   "COMPLETED",
+  "CUSTOMER_REJECTED",
   "CLOSED",
-  "REJECTED"
+  "REJECTED",
 ]);
+
+// Confirmation status enum validation
+const confirmationStatusSchema = z.enum(["PENDING", "CONFIRMED", "REJECTED"]);
 
 // Assignment Type enum validation
 const assignmentTypeSchema = z.enum([
@@ -131,6 +135,34 @@ export const deleteRequestSchema = z.object({
   }),
 });
 
+// Customer confirm completion schema
+export const confirmCompletionSchema = z.object({
+  params: z.object({
+    id: z.string().uuid(),
+  }),
+  body: z.object({
+    comment: z.string().max(2000).trim().optional(),
+  }),
+});
+
+// Customer reject completion schema
+export const rejectCompletionSchema = z.object({
+  params: z.object({
+    id: z.string().uuid(),
+  }),
+  body: z.object({
+    reason: z.string().min(3).max(2000).trim(),
+    comment: z.string().max(2000).trim().optional(),
+  }),
+});
+
+// Get confirmation status schema
+export const getConfirmationStatusSchema = z.object({
+  params: z.object({
+    id: z.string().uuid(),
+  }),
+});
+
 // Type exports for use in controllers
 export type CreateRequestInput = z.infer<typeof createRequestSchema>;
 export type UpdateRequestInput = z.infer<typeof updateRequestSchema>;
@@ -141,4 +173,9 @@ export type AddCommentInput = z.infer<typeof addCommentSchema>;
 export type GetRequestsQueryInput = z.infer<typeof getRequestsQuerySchema>;
 export type GetRequestByIdInput = z.infer<typeof getRequestByIdSchema>;
 export type DeleteRequestInput = z.infer<typeof deleteRequestSchema>;
+export type ConfirmCompletionInput = z.infer<typeof confirmCompletionSchema>;
+export type RejectCompletionInput = z.infer<typeof rejectCompletionSchema>;
+export type GetConfirmationStatusInput = z.infer<
+  typeof getConfirmationStatusSchema
+>;
 
