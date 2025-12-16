@@ -127,5 +127,312 @@ router.post(
   fileUploadController.uploadFile
 );
 
+/**
+ * @swagger
+ * /api/v1/storage/upload/multiple:
+ *   post:
+ *     summary: Upload multiple files
+ *     tags: [Storage]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - files
+ *             properties:
+ *               files:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 maxItems: 10
+ *               entityType:
+ *                 type: string
+ *                 enum: [MAINTENANCE_REQUEST, USER_PROFILE, TECHNICIAN_AVATAR, DOCUMENT, OTHER]
+ *               entityId:
+ *                 type: string
+ *                 format: uuid
+ *     responses:
+ *       207:
+ *         description: Multi-Status - Some files may have failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     uploaded:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/FileUploadResponse'
+ *                     errors:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           fileName:
+ *                             type: string
+ *                           error:
+ *                             type: string
+ *                     summary:
+ *                       type: object
+ *                       properties:
+ *                         total:
+ *                           type: integer
+ *                         uploaded:
+ *                           type: integer
+ *                         failed:
+ *                           type: integer
+ */
+router.post(
+  '/upload/multiple',
+  requireAuth,
+  uploadRateLimit,
+  upload.array('files', 10), // Max 10 files
+  fileUploadController.uploadMultipleFiles
+);
+
+/**
+ * @swagger
+ * /api/v1/storage/{fileKey}/download:
+ *   get:
+ *     summary: Get signed download URL
+ *     tags: [Storage]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: fileKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: expiresIn
+ *         schema:
+ *           type: integer
+ *           default: 3600
+ *           minimum: 60
+ *           maximum: 86400
+ *     responses:
+ *       200:
+ *         description: Signed URL generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     signedUrl:
+ *                       type: string
+ *                     expiresAt:
+ *                       type: string
+ *                       format: date-time
+ */
+router.get(
+  '/:fileKey/download',
+  requireAuth,
+  fileUploadController.getDownloadUrl
+);
+
+/**
+ * @swagger
+ * /api/v1/storage/{fileKey}:
+ *   get:
+ *     summary: Get file information
+ *     tags: [Storage]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: fileKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: File information retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     key:
+ *                       type: string
+ *                     fileName:
+ *                       type: string
+ *                     fileSize:
+ *                       type: integer
+ *                     contentType:
+ *                       type: string
+ *                     uploadedAt:
+ *                       type: string
+ *                       format: date-time
+ *   delete:
+ *     summary: Delete a file
+ *     tags: [Storage]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: fileKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: File deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ */
+router.get(
+  '/:fileKey',
+  requireAuth,
+  fileUploadController.getFileInfo
+);
+
+router.delete(
+  '/:fileKey',
+  requireAuth,
+  fileUploadController.deleteFile
+);
+
+/**
+ * @swagger
+ * /api/v1/storage/files:
+ *   get:
+ *     summary: List user files
+ *     tags: [Storage]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *       - in: query
+ *         name: fileType
+ *         schema:
+ *           type: string
+ *           enum: [image, document, video, audio, archive, other]
+ *       - in: query
+ *         name: entityType
+ *         schema:
+ *           type: string
+ *           enum: [MAINTENANCE_REQUEST, USER_PROFILE, TECHNICIAN_AVATAR, DOCUMENT, OTHER]
+ *     responses:
+ *       200:
+ *         description: Files retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     files:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           key:
+ *                             type: string
+ *                           fileName:
+ *                             type: string
+ *                           fileSize:
+ *                             type: integer
+ *                           uploadedAt:
+ *                             type: string
+ *                             format: date-time
+ *                     pagination:
+ *                       $ref: '#/components/schemas/Pagination'
+ */
+router.get(
+  '/files',
+  requireAuth,
+  fileUploadController.listFiles
+);
+
+/**
+ * @swagger
+ * /api/v1/storage/stats:
+ *   get:
+ *     summary: Get storage statistics
+ *     tags: [Storage]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: period
+ *         schema:
+ *           type: string
+ *           enum: [week, month, quarter, year, all]
+ *           default: month
+ *     responses:
+ *       200:
+ *         description: Statistics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     totalFiles:
+ *                       type: integer
+ *                     totalSize:
+ *                       type: integer
+ *                     fileStats:
+ *                       type: object
+ *                       properties:
+ *                         images:
+ *                           type: object
+ *                           properties:
+ *                             count:
+ *                               type: integer
+ *                             size:
+ *                               type: integer
+ */
+router.get(
+  '/stats',
+  requireAuth,
+  fileUploadController.getStorageStats
+);
+
 export default router;
 

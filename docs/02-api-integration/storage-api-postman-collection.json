@@ -1,0 +1,671 @@
+{
+	"info": {
+		"_postman_id": "b1c2d3e4-f5g6-7890-hijk-lmno12345678",
+		"name": "Basma - File Storage API",
+		"description": "Postman collection for File Storage and Management API endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "File Upload",
+			"item": [
+				{
+					"name": "Upload Single File",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Success is true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Has required fields\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('key');",
+									"    pm.expect(jsonData.data).to.have.property('url');",
+									"    pm.expect(jsonData.data).to.have.property('signedUrl');",
+									"    pm.expect(jsonData.data).to.have.property('fileName');",
+									"    pm.expect(jsonData.data).to.have.property('fileSize');",
+									"});",
+									"",
+									"// Store file key for later tests",
+									"if (pm.response.json().success) {",
+									"    pm.collectionVariables.set('file_key', pm.response.json().data.key);",
+									"    pm.collectionVariables.set('file_name', pm.response.json().data.fileName);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "Select a file to upload (max 50MB)"
+								},
+								{
+									"key": "entityType",
+									"value": "MAINTENANCE_REQUEST",
+									"description": "Type of entity the file is associated with"
+								},
+								{
+									"key": "entityId",
+									"value": "{{request_id}}",
+									"description": "ID of the entity"
+								},
+								{
+									"key": "isPublic",
+									"value": "false",
+									"description": "Whether file should be publicly accessible"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/storage/upload",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"storage",
+								"upload"
+							]
+						},
+						"description": "Upload a single file to storage. Supports images, documents, media files up to 50MB."
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Multiple Files",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 207\", function () {",
+									"    pm.response.to.have.status(207);",
+									"});",
+									"",
+									"pm.test(\"Has upload summary\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('summary');",
+									"    pm.expect(jsonData.data.summary).to.have.property('total');",
+									"    pm.expect(jsonData.data.summary).to.have.property('uploaded');",
+									"    pm.expect(jsonData.data.summary).to.have.property('failed');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "files",
+									"type": "file",
+									"src": [],
+									"description": "Select multiple files (max 10)"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": [],
+									"description": "Second file"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": [],
+									"description": "Third file (optional)"
+								},
+								{
+									"key": "entityType",
+									"value": "MAINTENANCE_REQUEST",
+									"description": "Type of entity"
+								},
+								{
+									"key": "entityId",
+									"value": "{{request_id}}",
+									"description": "Entity ID"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/storage/upload/multiple",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"storage",
+								"upload",
+								"multiple"
+							]
+						},
+						"description": "Upload multiple files in a single request. Maximum 10 files, 100MB total."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for uploading files to storage"
+		},
+		{
+			"name": "File Access",
+			"item": [
+				{
+					"name": "Get Download URL",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Success is true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Has signed URL\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('signedUrl');",
+									"    pm.expect(jsonData.data).to.have.property('expiresAt');",
+									"});",
+									"",
+									"// Verify URL format",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Signed URL is valid\", function () {",
+									"    pm.expect(jsonData.data.signedUrl).to.include('X-Amz-Algorithm');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/storage/{{file_key}}/download?expiresIn=7200",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"storage",
+								"{{file_key}}",
+								"download"
+							],
+							"query": [
+								{
+									"key": "expiresIn",
+									"value": "7200",
+									"description": "URL expires in 2 hours"
+								}
+							]
+						},
+						"description": "Generate a signed URL for secure file download. URL expires after specified time."
+					},
+					"response": []
+				},
+				{
+					"name": "Get File Info",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Success is true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Has file metadata\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('fileName');",
+									"    pm.expect(jsonData.data).to.have.property('fileSize');",
+									"    pm.expect(jsonData.data).to.have.property('contentType');",
+									"    pm.expect(jsonData.data).to.have.property('uploadedAt');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/storage/{{file_key}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"storage",
+								"{{file_key}}"
+							]
+						},
+						"description": "Retrieve metadata and information about a stored file."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for accessing and downloading files"
+		},
+		{
+			"name": "File Management",
+			"item": [
+				{
+					"name": "Delete File",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Success is true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Has deletion info\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('deletedAt');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"softDelete\": true,\n  \"reason\": \"Testing file deletion\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/storage/{{file_key}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"storage",
+								"{{file_key}}"
+							]
+						},
+						"description": "Delete a file from storage. Use softDelete to move to backup instead of permanent deletion."
+					},
+					"response": []
+				},
+				{
+					"name": "List User Files",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Success is true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Has files array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('files');",
+									"    pm.expect(Array.isArray(jsonData.data.files)).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Has pagination info\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('pagination');",
+									"    pm.expect(jsonData.data.pagination).to.have.property('total');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/storage/files?page=1&limit=10&fileType=image&sortBy=uploadedAt&sortOrder=desc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"storage",
+								"files"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "fileType",
+									"value": "image",
+									"description": "Filter by file type: image, document, video, audio, archive, other"
+								},
+								{
+									"key": "sortBy",
+									"value": "uploadedAt",
+									"description": "Sort field: uploadedAt, fileName, fileSize"
+								},
+								{
+									"key": "sortOrder",
+									"value": "desc",
+									"description": "Sort order: asc, desc"
+								}
+							]
+						},
+						"description": "List files uploaded by the authenticated user with filtering and pagination."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Storage Statistics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Success is true\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Has storage stats\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('totalFiles');",
+									"    pm.expect(jsonData.data).to.have.property('totalSize');",
+									"    pm.expect(jsonData.data).to.have.property('fileStats');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/storage/stats?period=month",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"storage",
+								"stats"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "month",
+									"description": "Time period: week, month, quarter, year, all"
+								}
+							]
+						},
+						"description": "Get storage usage statistics including file counts, storage used, and breakdown by file type."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing files (delete, list, statistics)"
+		},
+		{
+			"name": "Error Testing",
+			"item": [
+				{
+					"name": "Upload Oversized File",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "Select a file larger than 50MB to test error handling"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/storage/upload",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"storage",
+								"upload"
+							]
+						},
+						"description": "Test uploading a file that exceeds the 50MB limit. Should return 413 error."
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Without File",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{base_url}}/storage/upload",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"storage",
+								"upload"
+							]
+						},
+						"description": "Test uploading without providing a file. Should return 400 error."
+					},
+					"response": []
+				},
+				{
+					"name": "Access Invalid File Key",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/storage/invalid-file-key/download",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"storage",
+								"invalid-file-key",
+								"download"
+							]
+						},
+						"description": "Test accessing a file with an invalid key. Should return 404 error."
+					},
+					"response": []
+				},
+				{
+					"name": "Access Without Token",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/storage/files",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"storage",
+								"files"
+							]
+						},
+						"description": "Test accessing the API without authentication token. Should return 401 error."
+					},
+					"response": []
+				}
+			],
+			"description": "Test cases for error scenarios and edge cases"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3001/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string",
+			"description": "JWT authentication token"
+		},
+		{
+			"key": "file_key",
+			"value": "",
+			"type": "string",
+			"description": "Key of uploaded file (set automatically)"
+		},
+		{
+			"key": "file_name",
+			"value": "",
+			"type": "string",
+			"description": "Name of uploaded file (set automatically)"
+		},
+		{
+			"key": "request_id",
+			"value": "",
+			"type": "string",
+			"description": "Example maintenance request ID"
+		}
+	]
+}
