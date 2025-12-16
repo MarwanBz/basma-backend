@@ -1,9 +1,10 @@
-const getFirebaseAdmin = require("./firebase/firebase-admin");
-const { PrismaClient } = require("@prisma/client");
+import { Request, Response } from "express";
+import getFirebaseAdmin from "./firebase/firebase-admin";
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 // Device registration
-exports.registerDevice = async (req, res) => {
+export const registerDevice = async (req: Request, res: Response) => {
   try {
     const { token, platform, deviceId, appVersion } = req.body;
 
@@ -57,7 +58,7 @@ exports.registerDevice = async (req, res) => {
   }
 };
 
-exports.unregisterDevice = async (req, res) => {
+export const unregisterDevice = async (req: Request, res: Response) => {
   try {
     const { token } = req.body;
 
@@ -89,7 +90,7 @@ exports.unregisterDevice = async (req, res) => {
   }
 };
 
-exports.getSubscriptions = async (req, res) => {
+export const getSubscriptions = async (req: Request, res: Response) => {
   try {
     // Get user ID from authenticated request
     const userId = req.user?.id;
@@ -118,9 +119,9 @@ exports.getSubscriptions = async (req, res) => {
       },
     });
 
-    const subscriptions = devices.map(device => ({
+    const subscriptions = devices.map((device) => ({
       ...device,
-      topics: device.fcm_topic_subscriptions.map(sub => sub.topic),
+      topics: device.fcm_topic_subscriptions.map((sub) => sub.topic),
     }));
 
     return res.status(200).json({
@@ -136,7 +137,7 @@ exports.getSubscriptions = async (req, res) => {
   }
 };
 
-exports.unsubscribeTopic = async (req, res) => {
+export const unsubscribeTopic = async (req: Request, res: Response) => {
   try {
     const { token, topic } = req.body;
 
@@ -171,7 +172,7 @@ exports.unsubscribeTopic = async (req, res) => {
     }
 
     console.log(
-      `Successfully unsubscribed ${response.successCount} tokens from topic: ${topic}`
+      `Successfully unsubscribed ${response.successCount} tokens from topic: ${topic}`,
     );
     return res.status(200).json({
       success: true,
@@ -184,7 +185,7 @@ exports.unsubscribeTopic = async (req, res) => {
   }
 };
 
-exports.sendAnnouncement = async (req, res) => {
+export const sendAnnouncement = async (req: Request, res: Response) => {
   try {
     const { title, body, targetRole, announcementId } = req.body;
 
@@ -221,16 +222,16 @@ exports.sendAnnouncement = async (req, res) => {
       success: true,
       message: "Announcement sent successfully",
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error sending announcement:", error);
     return res.status(500).json({
       error: "Failed to send announcement",
-      details: error.message
+      details: error.message,
     });
   }
 };
 
-exports.sendTestNotification = async (req, res) => {
+export const sendTestNotification = async (req: Request, res: Response) => {
   try {
     const { token, userId, topic, title, body, data } = req.body;
 
@@ -262,7 +263,9 @@ exports.sendTestNotification = async (req, res) => {
         data: data || {},
       };
     } else {
-      return res.status(400).json({ error: "Either token or topic is required" });
+      return res
+        .status(400)
+        .json({ error: "Either token or topic is required" });
     }
 
     const response = await messaging.send(message);
@@ -279,16 +282,16 @@ exports.sendTestNotification = async (req, res) => {
         failureCount: 0,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error sending test notification:", error);
     return res.status(500).json({
       error: "Failed to send test notification",
-      details: error.message
+      details: error.message,
     });
   }
 };
 
-exports.subscribeTopic = async (req, res) => {
+export const subscribeTopic = async (req: Request, res: Response) => {
   try {
     const { token, topic } = req.body;
 
@@ -311,10 +314,9 @@ exports.subscribeTopic = async (req, res) => {
       console.error(
         "Failed to subscribe to topic:",
         response.failureCount,
-        "failures"
+        "failures",
       );
-      return res
-        .status(400).json({ error: "Failed to subscribe to topic" });
+      return res.status(400).json({ error: "Failed to subscribe to topic" });
     }
 
     // Save token to database if it doesn't exist
@@ -352,7 +354,7 @@ exports.subscribeTopic = async (req, res) => {
     });
 
     console.log(
-      `Successfully subscribed ${response.successCount} tokens to topic: ${topic}`
+      `Successfully subscribed ${response.successCount} tokens to topic: ${topic}`,
     );
     return res.status(200).json({
       success: true,
@@ -365,19 +367,19 @@ exports.subscribeTopic = async (req, res) => {
   }
 };
 
-exports.sendToTopic = async (req, res) => {
+export const sendToTopic = async (req: Request, res: Response) => {
   try {
     const { topic, title, body, data } = req.body;
 
     if (!topic || !title || !body) {
       return res.status(400).json({
-        error: "Topic, title, and body are required"
+        error: "Topic, title, and body are required",
       });
     }
 
     const messaging = getFirebaseAdmin();
 
-    const message = {
+    const message: any = {
       notification: {
         title,
         body,
@@ -398,11 +400,11 @@ exports.sendToTopic = async (req, res) => {
       success: true,
       messageId: response,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error sending notification to topic:", error);
     return res.status(500).json({
       error: "Failed to send notification",
-      details: error.message
+      details: error.message,
     });
   }
 };
