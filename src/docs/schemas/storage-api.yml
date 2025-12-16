@@ -1,0 +1,1099 @@
+openapi: 3.0.3
+info:
+  title: Basma Maintenance System - File Storage API
+  description: |
+    Comprehensive API documentation for file storage and management.
+
+    This API provides file upload, download, and management capabilities using Hetzner Object Storage (S3-compatible).
+
+    ## Features
+    - Secure file uploads with authentication
+    - Automatic virus scanning and content validation
+    - File metadata and audit logging
+    - Signed URL generation for secure access
+    - File deletion with permissions
+    - Multiple file support (images, documents, media)
+
+    ## Storage Architecture
+    - **Provider**: Hetzner Object Storage (S3-compatible)
+    - **Authentication**: JWT-based with role permissions
+    - **File Limits**: 50MB per file, configurable
+    - **Supported Formats**: Images, PDFs, Office documents, media files
+    - **Security**: Content validation, virus scanning, audit trails
+
+    ## File Key Format
+    Files are stored with unique keys: `uploads/{userId}/{timestamp}-{random}-{sanitizedFilename}`
+
+    ## Rate Limiting
+    - Upload endpoints: 100 requests per 15 minutes per IP
+    - Download endpoints: 1000 requests per hour per user
+    - Management endpoints: 200 requests per hour per user
+  version: 1.0.0
+  contact:
+    name: Basma Development Team
+    email: dev@basma-maintenance.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Development server
+  - url: https://api.basma-maintenance.com/api/v1
+    description: Production server
+
+tags:
+  - name: File Storage
+    description: File upload, download, and management endpoints
+
+security:
+  - bearerAuth: []
+
+paths:
+  /storage/upload:
+    post:
+      tags:
+        - File Storage
+      summary: Upload a file
+      description: |
+        Upload a file to Hetzner Object Storage.
+
+        **Security Features:**
+        - JWT authentication required
+        - File size validation (max 50MB)
+        - Content type validation
+        - Automatic virus scanning (if enabled)
+        - Audit logging
+
+        **File Processing:**
+        - Automatic thumbnail generation for images
+        - Metadata extraction
+        - Content validation
+        - Secure file key generation
+
+        **Supported File Types:**
+        - Images: jpg, jpeg, png, gif, webp, svg
+        - Documents: pdf, doc, docx, txt
+        - Office: xls, xlsx, ppt, pptx
+        - Media: mp4, avi, mov, mp3, wav
+        - Archives: zip, rar
+
+        **Rate Limiting:** 100 uploads per 15 minutes per IP
+      operationId: uploadFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: File to upload (max 50MB)
+                entityType:
+                  type: string
+                  enum: [MAINTENANCE_REQUEST, USER_PROFILE, TECHNICIAN_AVATAR, DOCUMENT, OTHER]
+                  description: Type of entity the file is associated with
+                  example: "MAINTENANCE_REQUEST"
+                entityId:
+                  type: string
+                  format: uuid
+                  description: ID of the entity the file is associated with
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                isPublic:
+                  type: boolean
+                  default: false
+                  description: Whether the file should be publicly accessible
+                expiresAt:
+                  type: string
+                  format: date-time
+                  description: Optional expiration date for the file
+                  example: "2025-12-31T23:59:59Z"
+      responses:
+        '201':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUploadResponse'
+              examples:
+                success:
+                  summary: Successful file upload
+                  value:
+                    success: true
+                    message: "File uploaded successfully"
+                    data:
+                      key: "uploads/550e8400-e29b-41d4-a716-446655440000/2025-01-15T14-30-00-abc123-profile.jpg"
+                      url: "https://your-hetzner-endpoint.com/basma-maintenance-files/uploads/550e8400-e29b-41d4-a716-446655440000/2025-01-15T14-30-00-abc123-profile.jpg"
+                      signedUrl: "https://your-hetzner-endpoint.com/basma-maintenance-files/uploads/550e8400-e29b-41d4-a716-446655440000/2025-01-15T14-30-00-abc123-profile.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256..."
+                      fileName: "profile.jpg"
+                      fileSize: 2048576
+                      contentType: "image/jpeg"
+                      uploadedAt: "2025-01-15T14:30:00Z"
+                      metadata:
+                        originalName: "my-profile-photo.jpg"
+                        uploadedBy: "550e8400-e29b-41d4-a716-446655440000"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          description: Payload Too Large - File exceeds size limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                success: false
+                error:
+                  code: "FILE_TOO_LARGE"
+                  message: "File size exceeds maximum limit of 50MB"
+                  details:
+                    maxSize: 52428800
+                    actualSize: 67108864
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /storage/upload/multiple:
+    post:
+      tags:
+        - File Storage
+      summary: Upload multiple files
+      description: |
+        Upload multiple files in a single request.
+
+        **Limitations:**
+        - Maximum 10 files per request
+        - Total size limit: 100MB per batch
+        - Each file must be under 50MB
+
+        **Use Cases:**
+        - Upload multiple attachments for maintenance requests
+        - Batch document uploads
+        - Photo galleries
+      operationId: uploadMultipleFiles
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - files
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Array of files to upload (max 10)
+                  maxItems: 10
+                entityType:
+                  type: string
+                  enum: [MAINTENANCE_REQUEST, USER_PROFILE, TECHNICIAN_AVATAR, DOCUMENT, OTHER]
+                  example: "MAINTENANCE_REQUEST"
+                entityId:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                isPublic:
+                  type: boolean
+                  default: false
+      responses:
+        '207':
+          description: Multi-Status - Some files may have failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MultipleUploadResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          description: Payload Too Large - Batch exceeds size limit
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /storage/{fileKey}/download:
+    get:
+      tags:
+        - File Storage
+      summary: Get signed download URL
+      description: |
+        Generate a signed URL for secure file download.
+
+        **Security:**
+        - URLs expire after specified time
+        - Permission checks before URL generation
+        - Access logging
+        - No direct file exposure
+
+        **URL Expiry:**
+        - Default: 1 hour
+        - Maximum: 24 hours
+        - Configurable per request
+      operationId: getDownloadUrl
+      parameters:
+        - name: fileKey
+          in: path
+          required: true
+          description: Unique key of the file in storage
+          schema:
+            type: string
+            pattern: '^uploads/[a-f0-9-]+/[0-9T-]+-[a-z0-9]+-.+$'
+            example: "uploads/550e8400-e29b-41d4-a716-446655440000/2025-01-15T14-30-00-abc123-document.pdf"
+        - name: expiresIn
+          in: query
+          description: URL expiration time in seconds (max 86400)
+          schema:
+            type: integer
+            minimum: 60
+            maximum: 86400
+            default: 3600
+            example: 7200
+        - name: download
+          in: query
+          description: Force download behavior in browser
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Signed URL generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignedUrlResponse'
+              examples:
+                success:
+                  summary: Download URL generated
+                  value:
+                    success: true
+                    data:
+                      signedUrl: "https://your-hetzner-endpoint.com/basma-maintenance-files/uploads/...?X-Amz-Algorithm=..."
+                      expiresAt: "2025-01-15T16:30:00Z"
+                      fileName: "document.pdf"
+                      fileSize: 1024576
+                      contentType: "application/pdf"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /storage/{fileKey}:
+    get:
+      tags:
+        - File Storage
+      summary: Get file information
+      description: |
+        Retrieve metadata and information about a stored file.
+
+        **Information Returned:**
+        - File metadata
+        - Upload details
+        - Access permissions
+        - File statistics
+      operationId: getFileInfo
+      parameters:
+        - name: fileKey
+          in: path
+          required: true
+          description: Unique key of the file in storage
+          schema:
+            type: string
+            example: "uploads/550e8400-e29b-41d4-a716-446655440000/2025-01-15T14-30-00-abc123-image.jpg"
+      responses:
+        '200':
+          description: File information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileInfoResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - File Storage
+      summary: Delete a file
+      description: |
+        Delete a file from storage.
+
+        **Permissions:**
+        - Users can delete their own files
+        - Admins can delete any file
+        - System deletion available
+
+        **Safety Features:**
+        - Soft delete option
+        - Backup before deletion
+        - Audit logging
+        - Confirmation for critical files
+      operationId: deleteFile
+      parameters:
+        - name: fileKey
+          in: path
+          required: true
+          description: Unique key of the file to delete
+          schema:
+            type: string
+            example: "uploads/550e8400-e29b-41d4-a716-446655440000/2025-01-15T14-30-00-abc123-old-file.pdf"
+      requestBody:
+        description: Optional deletion options
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                softDelete:
+                  type: boolean
+                  default: false
+                  description: Perform soft delete instead of permanent deletion
+                reason:
+                  type: string
+                  maxLength: 500
+                  description: Reason for deletion (audit purposes)
+                  example: "User requested removal of personal data"
+      responses:
+        '200':
+          description: File deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /storage/files:
+    get:
+      tags:
+        - File Storage
+      summary: List user files
+      description: |
+        List files uploaded by the authenticated user with filtering and pagination.
+
+        **Filters Available:**
+        - File type
+        - Date range
+        - Entity type
+        - Size range
+        - Search in filename
+      operationId: listUserFiles
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: fileType
+          in: query
+          description: Filter by file type
+          schema:
+            type: string
+            enum: [image, document, video, audio, archive, other]
+        - name: entityType
+          in: query
+          description: Filter by entity type
+          schema:
+            type: string
+            enum: [MAINTENANCE_REQUEST, USER_PROFILE, TECHNICIAN_AVATAR, DOCUMENT, OTHER]
+        - name: dateFrom
+          in: query
+          description: Filter files uploaded after this date
+          schema:
+            type: string
+            format: date
+        - name: dateTo
+          in: query
+          description: Filter files uploaded before this date
+          schema:
+            type: string
+            format: date
+        - name: search
+          in: query
+          description: Search in filenames
+          schema:
+            type: string
+            maxLength: 100
+        - name: sortBy
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            enum: [uploadedAt, fileName, fileSize]
+            default: uploadedAt
+        - name: sortOrder
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: Files retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /storage/stats:
+    get:
+      tags:
+        - File Storage
+      summary: Get storage statistics
+      description: |
+        Get storage usage statistics for the authenticated user.
+
+        **Statistics Include:**
+        - Total files count
+        - Total storage used
+        - Storage by file type
+        - Upload timeline
+        - Popular file types
+      operationId: getStorageStats
+      parameters:
+        - name: period
+          in: query
+          description: Time period for statistics
+          schema:
+            type: string
+            enum: [week, month, quarter, year, all]
+            default: month
+      responses:
+        '200':
+          description: Statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageStatsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token obtained from authentication endpoint.
+        Required for all storage API operations.
+
+  schemas:
+    FileUploadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "File uploaded successfully"
+        data:
+          type: object
+          properties:
+            key:
+              type: string
+              description: Unique file key in storage
+              example: "uploads/550e8400-e29b-41d4-a716-446655440000/2025-01-15T14-30-00-abc123-document.pdf"
+            url:
+              type: string
+              description: Direct URL to the file (may require signed URL)
+              example: "https://your-hetzner-endpoint.com/basma-maintenance-files/uploads/..."
+            signedUrl:
+              type: string
+              description: Pre-signed URL for immediate access (1 hour expiry)
+              example: "https://your-hetzner-endpoint.com/basma-maintenance-files/uploads/...?X-Amz-Algorithm=..."
+            fileName:
+              type: string
+              description: Original filename
+              example: "maintenance-report.pdf"
+            fileSize:
+              type: integer
+              format: int64
+              description: File size in bytes
+              example: 2048576
+            contentType:
+              type: string
+              description: MIME type of the file
+              example: "application/pdf"
+            uploadedAt:
+              type: string
+              format: date-time
+              description: Upload timestamp
+              example: "2025-01-15T14:30:00Z"
+            metadata:
+              type: object
+              description: Additional file metadata
+              properties:
+                originalName:
+                  type: string
+                  example: "maintenance-report.pdf"
+                uploadedBy:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                entityType:
+                  type: string
+                  example: "MAINTENANCE_REQUEST"
+                entityId:
+                  type: string
+                  format: uuid
+                  example: "req-123456"
+
+    MultipleUploadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            uploaded:
+              type: array
+              items:
+                $ref: '#/components/schemas/FileUploadResponse'
+              description: Successfully uploaded files
+            errors:
+              type: array
+              items:
+                type: object
+                properties:
+                  fileName:
+                    type: string
+                    example: "too-large-file.zip"
+                  error:
+                    type: string
+                    example: "File size exceeds 50MB limit"
+              description: Failed uploads with error messages
+            summary:
+              type: object
+              properties:
+                total:
+                  type: integer
+                  example: 5
+                uploaded:
+                  type: integer
+                  example: 4
+                failed:
+                  type: integer
+                  example: 1
+                totalSize:
+                  type: integer
+                  format: int64
+                  example: 10485760
+
+    SignedUrlResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            signedUrl:
+              type: string
+              description: Pre-signed URL for secure access
+              example: "https://your-hetzner-endpoint.com/...?X-Amz-Algorithm=AWS4-HMAC-SHA256..."
+            expiresAt:
+              type: string
+              format: date-time
+              description: URL expiration timestamp
+              example: "2025-01-15T16:30:00Z"
+            fileName:
+              type: string
+              example: "document.pdf"
+            fileSize:
+              type: integer
+              format: int64
+              example: 1024576
+            contentType:
+              type: string
+              example: "application/pdf"
+
+    FileInfoResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            key:
+              type: string
+              example: "uploads/.../file.pdf"
+            fileName:
+              type: string
+              example: "document.pdf"
+            fileSize:
+              type: integer
+              format: int64
+              example: 1024576
+            contentType:
+              type: string
+              example: "application/pdf"
+            uploadedAt:
+              type: string
+              format: date-time
+              example: "2025-01-15T14:30:00Z"
+            uploadedBy:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                name:
+                  type: string
+                  example: "John Doe"
+                email:
+                  type: string
+                  example: "john@example.com"
+            metadata:
+              type: object
+              properties:
+                entityType:
+                  type: string
+                  example: "MAINTENANCE_REQUEST"
+                entityId:
+                  type: string
+                  example: "req-123456"
+                isPublic:
+                  type: boolean
+                  example: false
+                expiresAt:
+                  type: string
+                  format: date-time
+                  example: "2025-12-31T23:59:59Z"
+            permissions:
+              type: object
+              properties:
+                canView:
+                  type: boolean
+                  example: true
+                canDownload:
+                  type: boolean
+                  example: true
+                canDelete:
+                  type: boolean
+                  example: true
+                canShare:
+                  type: boolean
+                  example: false
+            access:
+              type: object
+              properties:
+                downloadCount:
+                  type: integer
+                  example: 5
+                lastAccessed:
+                  type: string
+                  format: date-time
+                  example: "2025-01-15T15:30:00Z"
+                ipAddress:
+                  type: string
+                  example: "192.168.1.100"
+
+    DeleteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "File deleted successfully"
+        data:
+          type: object
+          properties:
+            deletedAt:
+              type: string
+              format: date-time
+              example: "2025-01-15T16:30:00Z"
+            softDelete:
+              type: boolean
+              example: false
+            reason:
+              type: string
+              example: "User requested deletion"
+            backupLocation:
+              type: string
+              description: Backup location if soft delete enabled
+              example: "backups/deleted/2025-01-15/file.pdf"
+
+    FileListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            files:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    example: "uploads/.../file.pdf"
+                  fileName:
+                    type: string
+                    example: "document.pdf"
+                  fileSize:
+                    type: integer
+                    format: int64
+                    example: 1024576
+                  contentType:
+                    type: string
+                    example: "application/pdf"
+                  uploadedAt:
+                    type: string
+                    format: date-time
+                    example: "2025-01-15T14:30:00Z"
+                  entityType:
+                    type: string
+                    example: "MAINTENANCE_REQUEST"
+                  isPublic:
+                    type: boolean
+                    example: false
+            pagination:
+              type: object
+              properties:
+                page:
+                  type: integer
+                  example: 1
+                limit:
+                  type: integer
+                  example: 20
+                total:
+                  type: integer
+                  example: 150
+                totalPages:
+                  type: integer
+                  example: 8
+
+    StorageStatsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            totalFiles:
+              type: integer
+              example: 250
+            totalSize:
+              type: integer
+              format: int64
+              example: 5368709120
+              description: Total storage used in bytes
+            storageUsed:
+              type: string
+              example: "5.0 GB"
+            fileStats:
+              type: object
+              properties:
+                images:
+                  type: object
+                  properties:
+                    count:
+                      type: integer
+                      example: 100
+                    size:
+                      type: integer
+                      example: 2147483648
+                documents:
+                  type: object
+                  properties:
+                    count:
+                      type: integer
+                      example: 75
+                    size:
+                      type: integer
+                      example: 1073741824
+                videos:
+                  type: object
+                  properties:
+                    count:
+                      type: integer
+                      example: 25
+                    size:
+                      type: integer
+                      example: 2147483648
+            uploadsByPeriod:
+              type: array
+              items:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                    example: "2025-01-15"
+                  count:
+                    type: integer
+                    example: 15
+                  size:
+                    type: integer
+                    example: 524288000
+            largestFiles:
+              type: array
+              items:
+                type: object
+                properties:
+                  fileName:
+                    type: string
+                    example: "video-presentation.mp4"
+                  size:
+                    type: integer
+                    example: 1073741824
+                  uploadedAt:
+                    type: string
+                    format: date-time
+                    example: "2025-01-15T14:30:00Z"
+            storageLimit:
+              type: object
+              properties:
+                limit:
+                  type: integer
+                  example: 10737418240
+                  description: Storage limit in bytes
+                used:
+                  type: integer
+                  example: 5368709120
+                percentage:
+                  type: number
+                  example: 50
+                  description: Percentage of storage used
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Error code for programmatic handling
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              description: Human-readable error message
+              example: "File type not supported"
+            details:
+              type: object
+              description: Additional error details
+              properties:
+                field:
+                  type: string
+                  example: "file"
+                value:
+                  type: string
+                  example: "script.exe"
+                allowedTypes:
+                  type: array
+                  items:
+                    type: string
+                  example: ["jpg", "png", "pdf", "doc"]
+
+  responses:
+    BadRequest:
+      description: Bad request - Invalid input or parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            validationError:
+              summary: Validation failed
+              value:
+                success: false
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "No file provided for upload"
+            fileTypeError:
+              summary: Invalid file type
+              value:
+                success: false
+                error:
+                  code: "INVALID_FILE_TYPE"
+                  message: "File type not supported"
+                  details:
+                    allowedTypes: ["jpg", "jpeg", "png", "gif", "pdf", "doc", "docx"]
+
+    Unauthorized:
+      description: Unauthorized - Invalid or missing authentication token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: "UNAUTHORIZED"
+                  message:
+                    type: string
+                    example: "Access token is missing or invalid"
+
+    Forbidden:
+      description: Forbidden - User doesn't have permission to access the file
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: "FORBIDDEN"
+                  message:
+                    type: string
+                    example: "You do not have permission to access this file"
+
+    NotFound:
+      description: File not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: "NOT_FOUND"
+                  message:
+                    type: string
+                    example: "File not found in storage"
+
+    RateLimitExceeded:
+      description: Too Many Requests - Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: "RATE_LIMIT_EXCEEDED"
+                  message:
+                    type: string
+                    example: "Too many file uploads, please try again later"
+                  details:
+                    type: object
+                    properties:
+                      retryAfter:
+                        type: integer
+                        example: 900
+                        description: Seconds to wait before retrying
+                      limit:
+                        type: integer
+                        example: 100
+                        description: Request limit per window
+
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: "INTERNAL_ERROR"
+                  message:
+                    type: string
+                    example: "Internal server error occurred"
+                  requestId:
+                    type: string
+                    example: "req_123456789"
+                    description: Request ID for troubleshooting
+
+# Examples for documentation
+examples:
+  FileUploadExample:
+    summary: Example of uploading a maintenance request photo
+    value:
+      file: (binary data)
+      entityType: "MAINTENANCE_REQUEST"
+      entityId: "req-123456"
+      isPublic: false
+
+  MultipleUploadExample:
+    summary: Example of uploading multiple documents
+    value:
+      files: [(binary data 1), (binary data 2), (binary data 3)]
+      entityType: "MAINTENANCE_REQUEST"
+      entityId: "req-123456"
+
+  DeleteFileExample:
+    summary: Example of deleting a file with reason
+    value:
+      softDelete: true
+      reason: "User requested removal of personal data"
