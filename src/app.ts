@@ -34,11 +34,27 @@ import userRoutes from "@/routes/user.routes";
 // import notificationRoutes from "@/routes/notificationRoutes";
 var admin = require("firebase-admin");
 
-var serviceAccount = require("../config/firebase-service-account.json");
+let serviceAccount;
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+try {
+  serviceAccount = require("../config/firebase-service-account.json");
+} catch (error) {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } catch (parseError) {
+      console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT environment variable", parseError);
+    }
+  }
+}
+
+if (serviceAccount) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+} else {
+  console.warn("Firebase Admin not initialized: Service account credentials missing.");
+}
 
 
 const app = express();
@@ -57,6 +73,7 @@ const setupMiddleware = (app: express.Application) => {
       origin: [
         "http://localhost:3000",
         "https://basma-admin-dashboard.vercel.app",
+        "https://basma.expo.app/login",
       ],
       credentials: true,
     })
