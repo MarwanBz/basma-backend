@@ -1,0 +1,63 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  claude-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Code Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.CLAUDE_AI_OAUTH_ACCESS_TOKEN }}
+
+          # Use custom environment variables to configure Z.AI API
+          settings: |
+            {
+              "env": {
+                "ANTHROPIC_BASE_URL": "${{ secrets.ANTHROPIC_BASE_URL }}",
+                "ANTHROPIC_AUTH_TOKEN": "${{ secrets.ANTHROPIC_AUTH_TOKEN }}",
+                "ANTHROPIC_DEFAULT_HAIKU_MODEL": "glm-4.5-air",
+                "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-4.6",
+                "ANTHROPIC_DEFAULT_OPUS_MODEL": "glm-4.6"
+              }
+            }
+
+          # Custom prompt for code review
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+            PR TITLE: ${{ github.event.pull_request.title }}
+            PR DESCRIPTION: ${{ github.event.pull_request.body }}
+
+            Please review this pull request and provide feedback on:
+            - Code quality and best practices
+            - Potential bugs or issues
+            - Performance considerations
+            - Security concerns
+            - TypeScript/React best practices
+            - Memory leaks and cleanup issues
+            - Error handling patterns
+
+            Focus on high-signal issues that will cause runtime problems or significantly impact maintainability.
+            Ignore nitpicks and style preferences not explicitly required.
+
+            Use gh pr comment to leave your review as a comment on the PR.
+
+          # Configure Claude with necessary permissions
+          claude_args: |
+            --allowed-tools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*)"
+

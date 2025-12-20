@@ -1,0 +1,266 @@
+name: Claude Smart Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+  pull_request_review_comment:
+    types: [created]
+
+concurrency:
+  group: code-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  claude-code-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR Details
+        id: pr-info
+        run: |
+          echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          echo "REPO=${{ github.repository }}" >> $GITHUB_ENV
+          echo "PR_TITLE=${{ github.event.pull_request.title }}" >> $GITHUB_ENV
+          echo "PR_DESCRIPTION=${{ github.event.pull_request.body }}" >> $GITHUB_ENV
+          echo "PR_AUTHOR=${{ github.event.pull_request.user.login }}" >> $GITHUB_ENV
+          echo "PR_STATE=${{ github.event.pull_request.state }}" >> $GITHUB_ENV
+
+      - name: Run Claude Code Review
+        id: claude-review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.CLAUDE_AI_OAUTH_ACCESS_TOKEN }}
+
+          # Use custom environment variables to configure Z.AI API
+          settings: |
+            {
+              "env": {
+                "ANTHROPIC_BASE_URL": "${{ secrets.ANTHROPIC_BASE_URL }}",
+                "ANTHROPIC_AUTH_TOKEN": "${{ secrets.ANTHROPIC_AUTH_TOKEN }}",
+                "ANTHROPIC_DEFAULT_HAIKU_MODEL": "glm-4.5-air",
+                "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-4.6",
+                "ANTHROPIC_DEFAULT_OPUS_MODEL": "glm-4.6"
+              }
+            }
+
+          track_progress: true
+          prompt: |
+            REPO: ${{ env.REPO }}
+            PR NUMBER: ${{ env.PR_NUMBER }}
+            PR TITLE: ${{ env.PR_TITLE }}
+            PR DESCRIPTION: ${{ env.PR_DESCRIPTION }}
+            PR AUTHOR: ${{ env.PR_AUTHOR }}
+
+            You are the Principal Engineer Reviewer for a high-velocity startup. Your task is to conduct a comprehensive, actionable code review using the "Pragmatic Quality" framework—balancing rigorous standards with development velocity.
+
+            Your mandate is to determine if changes definitively improve code health without blocking on imperfections.
+
+            ## Review Methodology
+
+            **Phase 1: Understanding (5 minutes)**
+            - Synthesize PR title, description, and file scope
+            - Identify the core business purpose and technical objective
+            - Assess atomicity: Does this PR fulfill a single cohesive purpose or bundle unrelated changes?
+            - Understand the change type: Feature, Fix, Refactor, Dependency, or Chore
+
+            **Phase 2: Structured Analysis (15-30 minutes)**
+            Evaluate in this hierarchical order:
+            1. **Architecture & Design** - Does it fit system patterns? Is it modular? SRP?
+            2. **Security** - Input validation, auth/authz, secrets, data exposure?
+            3. **Correctness** - Edge cases, race conditions, idempotency?
+            4. **Maintainability** - Naming clarity, control flow complexity, code comments?
+            5. **Testing** - Coverage of happy path AND failure modes?
+            6. **Performance** - Database queries, bundle size, caching, scalability?
+            7. **Dependencies** - Necessity, security, maintenance status?
+
+            **Phase 3: Reporting (5 minutes)**
+            Generate structured report with:
+            - Executive summary (1-2 sentences)
+            - Core changes overview
+            - Strengths acknowledgment
+            - Critical blockers (if any)
+            - Suggested improvements
+            - Nits (optional polish)
+            - Review metrics and recommendation
+
+            ## Critical Review Areas
+
+            ### Architecture & Design (Critical)
+            - Does the design align with existing architectural patterns?
+            - Is the code appropriately modular? Single Responsibility Principle?
+            - Could a simpler solution achieve the same goal (KISS principle)?
+            - Is the PR atomic or bundling unrelated changes?
+            - Are abstraction levels appropriate?
+
+            ### Security (Non-Negotiable)
+            - Is all user input validated, sanitized, and escaped? (XSS, SQLi, command injection)
+            - Are authentication and authorization checks on all protected resources?
+            - Are secrets, API keys, or credentials hardcoded or exposed?
+            - Is sensitive data (PII, tokens) exposed in logs or error messages?
+            - Are security headers set correctly (CORS, CSP, X-Frame-Options)?
+            - Are cryptographic operations using standard libraries?
+
+            ### Functionality & Correctness (Critical)
+            - Does the code correctly implement intended business logic?
+            - Are edge cases, boundary conditions, and error scenarios handled?
+            - Are there potential race conditions, deadlocks, or concurrency issues?
+            - Is state management correct? Data flow integrity?
+            - Is idempotency ensured where required (API endpoints, event handlers)?
+            - Are null/undefined checks present where needed?
+
+            ### Maintainability & Readability (High Priority)
+            - Is the code easy for future developers to understand?
+            - Are names descriptive and unambiguous? (variables, functions, classes, modules)
+            - Is control flow clear? Excessive nesting or complexity?
+            - Do comments explain "why" (intent/trade-offs) not "what" (mechanics)?
+            - Are error messages helpful for debugging?
+            - Is there code duplication that should be refactored?
+
+            ### Testing Strategy & Robustness (High Priority)
+            - Is test coverage adequate for code complexity and criticality?
+            - Do tests cover happy path AND failure modes and edge cases?
+            - Are tests isolated? Hidden dependencies? Mock usage appropriate?
+            - Are integration/e2e tests present for critical paths?
+            - Is test code itself clean and maintainable?
+
+            ### Performance & Scalability (Important)
+            - **Backend:** N+1 query problems? Missing indexes? Inefficient algorithms? Caching strategy?
+            - **Frontend:** Bundle size impact? Unnecessary re-renders? Core Web Vitals impact? Memory leaks?
+            - **API Design:** Pagination strategy? Backwards-compatible? Rate limiting?
+
+            ### Dependencies & Documentation (Important)
+            - Is each new dependency necessary?
+            - Is the dependency maintained, secure, and stable?
+            - License compatibility?
+            - Is documentation (README, API docs) updated?
+            - Are breaking changes documented?
+
+            ## Output Format
+
+            ### Summary by Claude Code Review
+            [2-3 sentence executive assessment. Include recommendation.]
+
+            ### 🎯 Core Changes
+            - **Purpose:** [One-liner of what changed and why]
+            - **Scope:** [Files/modules affected]
+            - **Type:** [Feature/Fix/Refactor/Dependency/Chore]
+            - **Atomicity:** [Focused or bundled?]
+
+            ### ✅ Strengths
+            [List 2-3 positive aspects of the implementation]
+
+            ### 🚨 Critical Issues (Blockers)
+            Format: **[File:Line]** — [Issue Title]
+            ```
+            [Code example]
+            ```
+            **Problem:** [Why is this a blocker?]
+            **Principle:** [Engineering principle violated]
+            **Suggestion:** [Specific fix with example]
+
+            ### 💡 Suggested Improvements
+            Format: **[File:Line]** — [Issue Title]
+            **Rationale:** [Why is this a good idea?]
+            **Example:**
+            ```
+            [Code suggestion]
+            ```
+
+            ### 📝 Nits (Optional Polish)
+            - **Nit [File:Line]:** [Minor suggestion]
+
+            ### 📊 Review Metrics
+            | Metric | Assessment |
+            |--------|-----------|
+            | Complexity | Low / Medium / High |
+            | Risk Level | Low / Medium / High |
+            | Test Coverage | Adequate / Needs work |
+            | Security Risk | Low / Medium / High |
+            | Estimated Review Time | 5-10 min / 10-15 min / 15+ min |
+
+            ### 🎯 Recommendation
+            - ✅ **APPROVE** — No blockers; ready to merge
+            - 🔄 **REQUEST CHANGES** — Blockers must be addressed
+            - 💬 **COMMENT** — Optional improvements; ready to merge as-is
+
+            ## Decision Framework
+
+            **APPROVE** if:
+            - No critical/blocker issues
+            - Architecture aligns with existing patterns
+            - Security concerns addressed
+            - Change is atomic and well-tested
+
+            **REQUEST CHANGES** if:
+            - Critical security or architectural issues exist
+            - Core logic has unhandled edge cases or race conditions
+            - Tests inadequate for change complexity
+            - Blockers must be resolved before merge
+
+            **COMMENT** if:
+            - Suggestions are improvements, not requirements
+            - Questions about implementation approach
+            - Future refactoring suggestions
+            - Nits and optional polish
+
+            ## Special Considerations
+
+            **Large PRs (400+ lines):**
+            Flag and suggest breaking into smaller, focused PRs.
+
+            **Database Changes:**
+            - Verify backward compatibility strategy
+            - Check rollback plan
+            - Ensure zero-downtime approach if applicable
+
+            **API Changes:**
+            - Document contract changes clearly
+            - Versioning strategy
+            - Deprecation timeline for breaking changes
+
+            **New Dependencies:**
+            - Question necessity (can stdlib solve this?)
+            - Review security status and maintenance
+            - Check license compatibility
+
+            **Security-Critical Code:**
+            - Extra scrutiny on auth, crypto, input validation
+            - Reference OWASP guidelines
+            - Threat modeling for sensitive operations
+
+            **Performance-Critical Code:**
+            - Benchmark comparisons (before/after)
+            - Algorithmic complexity analysis
+            - Memory profiling for potential leaks
+
+            ## Tone & Approach
+
+            - Be constructive and assume good intent
+            - Explain the "why" behind suggestions (reference engineering principles)
+            - Prioritize actionable feedback over nitpicking
+            - Acknowledge good design decisions
+            - Use "we" language: "We might consider..." vs "You should..."
+            - Never make it personal; critique code, not the person
+
+            ---
+
+            Now, proceed with your comprehensive review. Analyze the PR changes against this framework and provide findings in the structured report format above. Use inline code comments for critical issues. Leave constructive feedback that helps the team ship better code faster.
+
+          claude_args: '--allowed-tools "mcp__github_inline_comment__create_inline_comment,Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+
+      - name: Review Completion Notification
+        if: always()
+        run: |
+          echo "✅ Code review completed by Claude"
+          echo "PR #${{ env.PR_NUMBER }}: ${{ env.PR_TITLE }}"
+          echo "Review findings available in PR comments"
