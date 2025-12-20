@@ -19,6 +19,8 @@ import { RequestService } from "@/services/request.service";
 import { Router } from "express";
 import { cache } from "@/middleware/cacheMiddleware";
 import { validateRequest } from "@/middleware/validateRequest";
+import multer from "multer";
+import { rateLimit } from "express-rate-limit";
 
 // DEPRECATED: Old file service - replaced by new storage service
 // import { FileController } from "@/controllers/file.controller";
@@ -28,6 +30,29 @@ import { validateRequest } from "@/middleware/validateRequest";
 const router = Router();
 const requestService = new RequestService();
 const requestController = new RequestController(requestService);
+
+// Configure multer for file uploads (store in memory)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit per file
+  },
+  fileFilter: (req, file, cb) => {
+    // File type validation handled by FileValidationService
+    cb(null, true);
+  },
+});
+
+// Rate limiting for uploads
+const uploadRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 uploads per windowMs
+  message: {
+    success: false,
+    error: "Too many file uploads, please try again later.",
+  },
+  legacyHeaders: false,
+});
 
 // DEPRECATED: Old file service initialization - replaced by new storage service
 // See: src/routes/storage.routes.ts for the new implementation
@@ -168,6 +193,10 @@ const fileController = new FileController(fileService);
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/RequestAssignmentHistory'
+ *         files:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/FileAttachment'
  *
  *     RequestCategory:
  *       type: object
@@ -233,6 +262,45 @@ const fileController = new FileController(fileService);
  *           $ref: '#/components/schemas/User'
  *         toTechnician:
  *           $ref: '#/components/schemas/User'
+ *
+ *     FileAttachment:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *         originalName:
+ *           type: string
+ *         fileName:
+ *           type: string
+ *         filePath:
+ *           type: string
+ *         fileSize:
+ *           type: integer
+ *         mimeType:
+ *           type: string
+ *         fileExtension:
+ *           type: string
+ *         width:
+ *           type: integer
+ *         height:
+ *           type: integer
+ *         processingStatus:
+ *           type: string
+ *           enum: [PENDING, PROCESSING, COMPLETED, FAILED]
+ *         thumbnailPath:
+ *           type: string
+ *         entityType:
+ *           type: string
+ *           enum: [MAINTENANCE_REQUEST, REQUEST_COMMENT, USER_PROFILE, BUILDING_CONFIG]
+ *         entityId:
+ *           type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
  *
  *     User:
  *       type: object
@@ -324,11 +392,107 @@ router.post(
 );
 
 /**
+ * @swagger
+ * /api/v1/requests/with-files:
+ *   post:
+ *     summary: Create a new maintenance request with file attachments
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - description
+ *               - categoryId
+ *               - location
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 minLength: 3
+ *                 maxLength: 200
+ *               description:
+ *                 type: string
+ *                 minLength: 10
+ *                 maxLength: 5000
+ *               priority:
+ *                 type: string
+ *                 enum: [LOW, MEDIUM, HIGH, URGENT]
+ *                 default: MEDIUM
+ *               categoryId:
+ *                 type: integer
+ *               location:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 100
+ *               building:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 100
+ *               specificLocation:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 100
+ *               estimatedCost:
+ *                 type: number
+ *                 format: decimal
+ *               scheduledDate:
+ *                 type: string
+ *                 format: date-time
+ *               customIdentifier:
+ *                 type: string
+ *               files:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *     responses:
+ *       201:
+ *         description: Request created successfully with files
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     request:
+ *                       $ref: '#/components/schemas/MaintenanceRequest'
+ *                     files:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/FileAttachment'
+ *                     uploadErrors:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       413:
+ *         description: File too large
+ */
+router.post(
+  "/with-files",
+  requireAuth,
+  uploadRateLimit,
+  upload.array("files", 10), // Max 10 files
+  requestController.createWithFiles
+);
+
+/**
  * DEPRECATED: This route used the old file service and has been disabled.
- * To create requests with files, use:
- * 1. POST /api/v1/requests to create the request
- * 2. POST /api/v1/storage/upload to upload files separately
- *
+ * To create requests with files, use the new /with-files endpoint above
  * Future enhancement: Integrate new storage service with request creation
  */
 /*

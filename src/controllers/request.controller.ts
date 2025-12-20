@@ -3,10 +3,16 @@ import { NextFunction, Request, Response } from "express";
 import { AppError } from "@/utils/appError";
 import { BaseController } from "./base.controller";
 import { RequestService } from "@/services/request.service";
+import { FileService } from "@/services/file.service";
+import { file_entity_type } from "@prisma/client";
+import { logger } from "@/config/logger";
 
 export class RequestController extends BaseController {
+  private fileService: FileService;
+
   constructor(private requestService: RequestService) {
     super();
+    this.fileService = new FileService();
   }
 
   /**
@@ -309,6 +315,86 @@ export class RequestController extends BaseController {
         req.user.userId,
         req.user.role
       );
+    });
+  };
+
+  /**
+   * Create a new maintenance request with files
+   */
+  createWithFiles = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      if (!req.user?.userId) {
+        throw new AppError("User not authenticated", 401);
+      }
+
+      // Extract request data from form
+      const requestData = {
+        title: req.body.title,
+        description: req.body.description,
+        categoryId: parseInt(req.body.categoryId),
+        location: req.body.location,
+        building: req.body.building,
+        specificLocation: req.body.specificLocation,
+        priority: req.body.priority || 'MEDIUM',
+        estimatedCost: req.body.estimatedCost ? parseFloat(req.body.estimatedCost) : undefined,
+        scheduledDate: req.body.scheduledDate ? new Date(req.body.scheduledDate) : undefined,
+        customIdentifier: req.body.customIdentifier || undefined
+      };
+
+      const files = req.files as Express.Multer.File[];
+
+      // Step 1: Create the maintenance request
+      const request = await this.requestService.createRequest(requestData, req.user.userId);
+
+      // Step 2: Upload files if any were provided
+      let uploadedFiles: any[] = [];
+      let uploadErrors: any[] = [];
+
+      if (files && files.length > 0) {
+        try {
+          const uploadResult = await this.fileService.uploadMultipleFiles(
+            files,
+            file_entity_type.MAINTENANCE_REQUEST,
+            request.id,
+            req.user.userId,
+            {
+              isPublic: false,
+              uploadIp: req.ip,
+            }
+          );
+
+          uploadedFiles = uploadResult.uploaded;
+          uploadErrors = uploadResult.errors;
+        } catch (error) {
+          // If file upload fails, we don't want to rollback the request creation
+          // Instead, we'll log the error and return it with the request
+          logger.error('File upload failed after request creation:', error);
+          uploadErrors.push({
+            error: 'File upload failed',
+            message: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      }
+
+      // Step 3: Return combined result
+      return {
+        success: true,
+        message: `Request created successfully${uploadedFiles.length > 0 ? ` with ${uploadedFiles.length} file(s) attached` : ''}`,
+        data: {
+          request,
+          files: uploadedFiles,
+          uploadErrors: uploadErrors.length > 0 ? uploadErrors : undefined
+        },
+        metadata: {
+          operation: 'createRequestWithFiles',
+          timestamp: new Date(),
+          version: '1.0.0'
+        }
+      };
     });
   };
 }

@@ -228,6 +228,11 @@ export class RequestService {
           _count: {
             select: {
               comments: true,
+              files: {
+                where: {
+                  entityType: 'MAINTENANCE_REQUEST'
+                }
+              }
             },
           },
         },
@@ -249,7 +254,7 @@ export class RequestService {
   /**
    * Get a single request by ID
    */
-  async getRequestById(id: string, userRole: string, userId?: string) {
+  async getRequestById(id: string, userRole: string, userId?: string, includeFiles: boolean = true) {
     const request = await prisma.maintenance_request.findUnique({
       where: { id },
       include: {
@@ -339,6 +344,18 @@ export class RequestService {
             createdAt: "desc",
           },
         },
+        // Include files if requested
+        ...(includeFiles && {
+          files: {
+            where: {
+              entityType: 'MAINTENANCE_REQUEST',
+              entityId: id,
+            },
+            orderBy: {
+              createdAt: 'asc',
+            },
+          },
+        }),
       },
     });
 
@@ -428,6 +445,29 @@ export class RequestService {
       existingRequest.requestedById !== userId
     ) {
       throw new AppError("Access denied", 403, ErrorCode.FORBIDDEN);
+    }
+
+    // Delete associated files first (this will cascade due to foreign key constraints)
+    // The file_service handles the actual file deletion from storage
+    const { FileService } = await import("./file.service");
+    const fileService = new FileService();
+
+    // Get all files associated with this request
+    const files = await prisma.file_attachment.findMany({
+      where: {
+        entityType: 'MAINTENANCE_REQUEST',
+        entityId: id
+      }
+    });
+
+    // Delete files from storage
+    for (const file of files) {
+      try {
+        await fileService.deleteFile(file.id, userId || "");
+      } catch (error) {
+        logger.error(`Failed to delete file ${file.id} during request deletion:`, error);
+        // Continue with deletion even if file deletion fails
+      }
     }
 
     await prisma.maintenance_request.delete({
