@@ -28,18 +28,12 @@ export class RequestService {
    */
   async createRequest(data: CreateRequestInput["body"], userId: string) {
     try {
-      // Validate building is provided
-      if (!data.building) {
-        throw new AppError(
-          "Building is required for creating a maintenance request",
-          400,
-          ErrorCode.INVALID_INPUT
-        );
-      }
+      // Use fallback building if not provided
+      const buildingName = data.building || "GENERIC";
 
       // Generate custom identifier
       const customIdentifier = await this.identifierService.generateIdentifier(
-        data.building,
+        buildingName,
         data.customIdentifier, // Allow admin to provide custom identifier
         userId
       );
@@ -51,7 +45,7 @@ export class RequestService {
           priority: data.priority,
           categoryId: data.categoryId,
           location: data.location,
-          building: data.building,
+          building: data.building || null, // Store as null if not provided
           specificLocation: data.specificLocation,
           estimatedCost: data.estimatedCost,
           scheduledDate: data.scheduledDate

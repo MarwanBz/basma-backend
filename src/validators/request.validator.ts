@@ -34,7 +34,7 @@ export const createRequestSchema = z.object({
     priority: requestPrioritySchema.default("MEDIUM"),
     categoryId: z.number().int().positive(),
     location: z.string().min(2).max(100).trim(),
-    building: z.string().min(1).max(100).trim(), // Now required for identifier generation
+    building: z.string().min(1).max(100).trim().optional(), // Now optional - will use "GENERIC" as fallback
     specificLocation: z.string().min(2).max(200).trim().optional(),
     estimatedCost: z.number().positive().optional(),
     scheduledDate: z.string().datetime().optional(),
