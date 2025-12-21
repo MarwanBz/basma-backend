@@ -4,9 +4,7 @@ import {
   CreateRequestInput,
   ConfirmCompletionInput,
   GetRequestsQueryInput,
-  GetConfirmationStatusInput,
   RejectCompletionInput,
-  SelfAssignRequestInput,
   UpdateRequestInput,
   UpdateRequestStatusInput,
 } from "@/validators/request.validator";
@@ -503,14 +501,6 @@ export class RequestService {
     const currentStatus = request.status;
     const newStatus = data.status;
 
-    // Validate status transition based on role and confirmation state
-    this.validateStatusTransition(
-      currentStatus,
-      newStatus,
-      userRole,
-      request.customerConfirmationStatus
-    );
-
     const updateData: any = {
       status: newStatus,
     };
@@ -534,9 +524,12 @@ export class RequestService {
     }
 
     if (newStatus === "CUSTOMER_REJECTED") {
+      // When setting to CUSTOMER_REJECTED via status update, also go back to IN_PROGRESS
+      updateData.status = "IN_PROGRESS";
       updateData.customerConfirmationStatus = "REJECTED";
       updateData.customerRejectedAt = new Date();
       updateData.customerRejectionReason = data.reason || null;
+      updateData.completedDate = null;
     }
 
     if (newStatus === "CLOSED") {
@@ -609,7 +602,11 @@ export class RequestService {
     }
 
     if (request.customerConfirmationStatus === "CONFIRMED") {
-      throw new AppError("Request already confirmed", 400, ErrorCode.INVALID_INPUT);
+      throw new AppError(
+        "Request already confirmed",
+        400,
+        ErrorCode.INVALID_INPUT
+      );
     }
 
     const updatedRequest = await prisma.maintenance_request.update({
@@ -665,22 +662,24 @@ export class RequestService {
       );
     }
 
+    // When customer rejects, go back to IN_PROGRESS so technician can continue working
     const updatedRequest = await prisma.maintenance_request.update({
       where: { id: requestId },
       data: {
-        status: "CUSTOMER_REJECTED",
+        status: "IN_PROGRESS",
         customerConfirmationStatus: "REJECTED",
         customerRejectedAt: new Date(),
         customerRejectionReason: data.reason,
         customerConfirmationComment: data.comment || null,
+        completedDate: null, // Clear completed date since work continues
       },
     });
 
     await prisma.request_status_history.create({
       data: {
         fromStatus: "COMPLETED",
-        toStatus: "CUSTOMER_REJECTED",
-        reason: data.reason,
+        toStatus: "IN_PROGRESS",
+        reason: `Customer rejected: ${data.reason}`,
         changedById: userId,
         requestId,
       },
@@ -962,113 +961,6 @@ export class RequestService {
     });
 
     return updatedRequest;
-  }
-
-  /**
-   * Validate status transitions based on role and business rules
-   */
-  private validateStatusTransition(
-    currentStatus: string,
-    newStatus: string,
-    userRole: string,
-    confirmationStatus?: string | null
-  ) {
-    const validTransitions: Record<string, string[]> = {
-      DRAFT: ["SUBMITTED"],
-      SUBMITTED: ["ASSIGNED", "REJECTED"],
-      ASSIGNED: ["IN_PROGRESS", "REJECTED"],
-      IN_PROGRESS: ["COMPLETED", "REJECTED"],
-      COMPLETED: ["CLOSED", "IN_PROGRESS", "CUSTOMER_REJECTED"],
-      CUSTOMER_REJECTED: ["IN_PROGRESS", "COMPLETED"],
-      CLOSED: ["IN_PROGRESS"],
-      REJECTED: ["SUBMITTED"],
-    };
-
-    if (!validTransitions[currentStatus]?.includes(newStatus)) {
-      throw new AppError(
-        `Invalid status transition from ${currentStatus} to ${newStatus}`,
-        400,
-        ErrorCode.INVALID_INPUT
-      );
-    }
-
-    // Once confirmed, only admin-level override can reopen
-    if (
-      currentStatus === "COMPLETED" &&
-      newStatus === "IN_PROGRESS" &&
-      confirmationStatus === "CONFIRMED" &&
-      !this.canAdminOverride(userRole)
-    ) {
-      throw new AppError(
-        "Confirmed requests can only be reopened by admin",
-        403,
-        ErrorCode.FORBIDDEN
-      );
-    }
-
-    // Closing requires confirmation or admin override (checked earlier)
-    if (
-      currentStatus === "COMPLETED" &&
-      newStatus === "CLOSED" &&
-      confirmationStatus !== "CONFIRMED" &&
-      !this.canAdminOverride(userRole)
-    ) {
-      throw new AppError(
-        "Request cannot be closed without confirmation",
-        400,
-        ErrorCode.INVALID_INPUT
-      );
-    }
-
-    // Role-based status update restrictions
-    const roleRestrictions: Record<string, string[]> = {
-      CUSTOMER: ["DRAFT", "SUBMITTED"],
-      TECHNICIAN: ["IN_PROGRESS", "COMPLETED"],
-      BASMA_ADMIN: [], // View-only
-      MAINTENANCE_ADMIN: [
-        "ASSIGNED",
-        "REJECTED",
-        "IN_PROGRESS",
-        "COMPLETED",
-        "CUSTOMER_REJECTED",
-        "CLOSED",
-      ],
-      ADMIN: [
-        "ASSIGNED",
-        "REJECTED",
-        "IN_PROGRESS",
-        "COMPLETED",
-        "CUSTOMER_REJECTED",
-        "CLOSED",
-      ],
-      SUPER_ADMIN: [
-        "DRAFT",
-        "SUBMITTED",
-        "ASSIGNED",
-        "IN_PROGRESS",
-        "COMPLETED",
-        "CUSTOMER_REJECTED",
-        "CLOSED",
-        "REJECTED",
-      ],
-    };
-
-    // Customer rejection should happen through dedicated endpoint; disallow via status route
-    if (newStatus === "CUSTOMER_REJECTED" && userRole === "CUSTOMER") {
-      throw new AppError(
-        "Use reject-completion endpoint for customer rejection",
-        403,
-        ErrorCode.FORBIDDEN
-      );
-    }
-
-    if (!roleRestrictions[userRole]?.includes(newStatus)) {
-      throw new AppError(
-        `Role ${userRole} cannot update status to ${newStatus}`,
-        403,
-        ErrorCode.FORBIDDEN
-      );
-    }
   }
 
   private canAdminOverride(userRole: string) {

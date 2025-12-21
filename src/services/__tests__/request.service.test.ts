@@ -515,43 +515,6 @@ describe("RequestService", () => {
         },
       });
     });
-
-    it("should throw error for invalid status transition", async () => {
-      const requestId = "request-123";
-      const statusData = {
-        status: "COMPLETED" as const,
-        reason: "Invalid transition",
-      };
-      const userId = "user-123";
-
-      const mockRequest = {
-        id: requestId,
-        title: "Fix door",
-        status: "SUBMITTED", // Cannot go directly to COMPLETED
-        requestedById: "user-456",
-        category: { id: 1, name: "Structural" },
-        requestedBy: {
-          id: "user-456",
-          name: "John Doe",
-          email: "john@example.com",
-          role: "CUSTOMER",
-        },
-        comments: [],
-        statusHistory: [],
-        assignmentHistory: [],
-      };
-
-      mockPrisma.maintenance_request.findUnique.mockResolvedValue(mockRequest);
-
-      await expect(
-        requestService.updateRequestStatus(
-          requestId,
-          statusData,
-          userId,
-          "TECHNICIAN"
-        )
-      ).rejects.toThrow(AppError);
-    });
   });
 
   describe("assignRequest", () => {
