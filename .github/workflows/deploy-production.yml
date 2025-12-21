@@ -1,0 +1,53 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Production Server
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          port: ${{ secrets.PROD_SSH_PORT || 22 }}
+          script: |
+            cd ${{ secrets.PROD_PATH || '/root/basma-backend' }}
+            echo "🚀 Starting deployment from GitHub Actions..."
+
+            # Pull latest changes
+            git pull origin main
+
+            # Install production dependencies
+            npm ci --production
+
+            # Build the project
+            npm run build
+
+            # Restart PM2 processes
+            pm2 restart all --update-env
+
+            # Show PM2 status
+            pm2 list
+
+            echo "✅ Deployment completed successfully!"
+
+      - name: Notify on success
+        if: success()
+        run: |
+          echo "🎉 Production deployment successful!"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Production deployment failed!"

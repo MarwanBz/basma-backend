@@ -34,12 +34,24 @@ import userRoutes from "@/routes/user.routes";
 // import notificationRoutes from "@/routes/notificationRoutes";
 var admin = require("firebase-admin");
 
-var serviceAccount = require("../config/firebase-service-account.json");
+// Initialize Firebase only if we have valid credentials
+try {
+  var serviceAccount = require("../config/firebase-service-account.json");
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
-
+  // Check if service account has placeholder values
+  if (serviceAccount.private_key.includes("PLACEHOLDER_PRIVATE_KEY")) {
+    console.warn("⚠️  Firebase service account contains placeholder values. Firebase initialization skipped.");
+    console.warn("   To enable Firebase, update config/firebase-service-account.json with real credentials");
+  } else {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+    console.log("✅ Firebase initialized successfully");
+  }
+} catch (error: any) {
+  console.warn("⚠️  Firebase initialization failed:", error.message);
+  console.warn("   Firebase features will be disabled");
+}
 
 const app = express();
 
@@ -57,9 +69,10 @@ const setupMiddleware = (app: express.Application) => {
       origin: [
         "http://localhost:3000",
         "https://basma-admin-dashboard.vercel.app",
+        "https://basma.expo.app",
       ],
       credentials: true,
-    })
+    }),
   );
 
   // Performance
