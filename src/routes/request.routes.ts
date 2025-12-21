@@ -784,11 +784,11 @@ router.post(
  *             schema:
  *               $ref: '#/components/schemas/MaintenanceRequest'
  *       400:
- *         description: Invalid input or status transition
+ *         description: Invalid input
  *       401:
  *         description: Unauthorized
  *       403:
- *         description: Forbidden - Role cannot update to this status
+ *         description: Forbidden - Access denied
  *       404:
  *         description: Request not found
  */
