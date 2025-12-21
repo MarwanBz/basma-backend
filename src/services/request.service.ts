@@ -524,9 +524,12 @@ export class RequestService {
     }
 
     if (newStatus === "CUSTOMER_REJECTED") {
+      // When setting to CUSTOMER_REJECTED via status update, also go back to IN_PROGRESS
+      updateData.status = "IN_PROGRESS";
       updateData.customerConfirmationStatus = "REJECTED";
       updateData.customerRejectedAt = new Date();
       updateData.customerRejectionReason = data.reason || null;
+      updateData.completedDate = null;
     }
 
     if (newStatus === "CLOSED") {
@@ -659,22 +662,24 @@ export class RequestService {
       );
     }
 
+    // When customer rejects, go back to IN_PROGRESS so technician can continue working
     const updatedRequest = await prisma.maintenance_request.update({
       where: { id: requestId },
       data: {
-        status: "CUSTOMER_REJECTED",
+        status: "IN_PROGRESS",
         customerConfirmationStatus: "REJECTED",
         customerRejectedAt: new Date(),
         customerRejectionReason: data.reason,
         customerConfirmationComment: data.comment || null,
+        completedDate: null, // Clear completed date since work continues
       },
     });
 
     await prisma.request_status_history.create({
       data: {
         fromStatus: "COMPLETED",
-        toStatus: "CUSTOMER_REJECTED",
-        reason: data.reason,
+        toStatus: "IN_PROGRESS",
+        reason: `Customer rejected: ${data.reason}`,
         changedById: userId,
         requestId,
       },
