@@ -21,9 +21,9 @@ const confirmationStatusSchema = z.enum(["PENDING", "CONFIRMED", "REJECTED"]);
 // Assignment Type enum validation
 const assignmentTypeSchema = z.enum([
   "INITIAL_ASSIGNMENT",
-  "REASSIGNMENT", 
+  "REASSIGNMENT",
   "SELF_ASSIGNMENT",
-  "UNASSIGNMENT"
+  "UNASSIGNMENT",
 ]);
 
 // Create Request Schema
@@ -38,7 +38,13 @@ export const createRequestSchema = z.object({
     specificLocation: z.string().min(2).max(200).trim().optional(),
     estimatedCost: z.number().positive().optional(),
     scheduledDate: z.string().datetime().optional(),
-    customIdentifier: z.string().min(3).max(20).regex(/^[A-Z0-9-]+$/i, "Only letters, numbers, and hyphens allowed").optional(), // Admin only
+    customIdentifier: z
+      .string()
+      .min(3)
+      .max(20)
+      .regex(/^[A-Z0-9-]+$/i, "Only letters, numbers, and hyphens allowed")
+      .optional(), // Admin only
+    attachmentIds: z.array(z.string().uuid()).optional(), // Optional file attachment IDs
   }),
 });
 
@@ -114,7 +120,9 @@ export const getRequestsQuerySchema = z.object({
     requestedById: z.string().uuid().optional(),
     building: z.string().trim().optional(),
     search: z.string().trim().optional(),
-    sortBy: z.enum(["createdAt", "updatedAt", "priority", "status", "title"]).default("createdAt"),
+    sortBy: z
+      .enum(["createdAt", "updatedAt", "priority", "status", "title"])
+      .default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     dateFrom: z.string().datetime().optional(),
     dateTo: z.string().datetime().optional(),
@@ -166,7 +174,9 @@ export const getConfirmationStatusSchema = z.object({
 // Type exports for use in controllers
 export type CreateRequestInput = z.infer<typeof createRequestSchema>;
 export type UpdateRequestInput = z.infer<typeof updateRequestSchema>;
-export type UpdateRequestStatusInput = z.infer<typeof updateRequestStatusSchema>;
+export type UpdateRequestStatusInput = z.infer<
+  typeof updateRequestStatusSchema
+>;
 export type AssignRequestInput = z.infer<typeof assignRequestSchema>;
 export type SelfAssignRequestInput = z.infer<typeof selfAssignRequestSchema>;
 export type AddCommentInput = z.infer<typeof addCommentSchema>;
@@ -178,4 +188,3 @@ export type RejectCompletionInput = z.infer<typeof rejectCompletionSchema>;
 export type GetConfirmationStatusInput = z.infer<
   typeof getConfirmationStatusSchema
 >;
-
