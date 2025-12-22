@@ -8,34 +8,73 @@ export class UserController extends BaseController {
     super();
   }
 
-  getAll = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  /**
+   * Get current authenticated user's profile
+   */
+  getProfile = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      if (!req.user?.userId) {
+        throw new AppError("Not authenticated", 401);
+      }
+      return await this.userService.getUserById(req.user.userId);
+    });
+  };
+
+  getAll = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     await this.handleRequest(req, res, next, async () => {
       return await this.userService.getAllUsers();
     });
   };
 
-  getUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  getUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     await this.handleRequest(req, res, next, async () => {
-      if (!req.user || (req.user.role !== "ADMIN" && req.user.userId !== req.params.id)) {
+      if (
+        !req.user ||
+        (req.user.role !== "ADMIN" && req.user.userId !== req.params.id)
+      ) {
         throw new AppError("Not authorized to access this profile", 403);
       }
       return await this.userService.getUserById(req.params.id);
     });
   };
 
-  create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  create = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     await this.handleRequest(req, res, next, async () => {
       return await this.userService.createUser(req.body);
     });
   };
 
-  update = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  update = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     await this.handleRequest(req, res, next, async () => {
       return await this.userService.updateUser(req.params.id, req.body);
     });
   };
 
-  delete = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  delete = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     await this.handleRequest(req, res, next, async () => {
       await this.userService.deleteUser(req.params.id);
       return null;
