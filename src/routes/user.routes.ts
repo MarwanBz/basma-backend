@@ -51,6 +51,31 @@ router.use(requireAuth);
 
 /**
  * @swagger
+ * /api/v1/users/profile:
+ *   get:
+ *     summary: Get current authenticated user's profile
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Current user's profile
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/profile", userController.getProfile);
+
+/**
+ * @swagger
  * /api/v1/users:
  *   get:
  *     summary: Get all users (Admin only)
