@@ -62,6 +62,7 @@ router.post("/signup", validateRequest(signupSchema), authController.signup);
  * /api/v1/auth/login:
  *   post:
  *     summary: Login user
+ *     description: Login with either email or phone number. The system automatically detects which one you're using.
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -70,15 +71,16 @@ router.post("/signup", validateRequest(signupSchema), authController.signup);
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - identifier
  *               - password
  *             properties:
- *               email:
+ *               identifier:
  *                 type: string
- *                 format: email
+ *                 description: Email address or phone number (e.g., "user@example.com" or "770108469")
  *               password:
  *                 type: string
  *                 format: password
+ *                 minLength: 6
  *     responses:
  *       200:
  *         description: Login successful
@@ -87,6 +89,17 @@ router.post("/signup", validateRequest(signupSchema), authController.signup);
  *             schema:
  *               type: object
  *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     role:
+ *                       type: string
  *                 accessToken:
  *                   type: string
  *                 refreshToken:

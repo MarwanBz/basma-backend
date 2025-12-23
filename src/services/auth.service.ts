@@ -139,8 +139,16 @@ export class AuthService {
     return { message: "Verification email sent" };
   }
 
-  async login(email: string, password: string) {
-    const user = await prisma.user.findUnique({ where: { email } });
+  async login(identifier: string, password: string) {
+    // Check if identifier is an email or phone number
+    const isEmail = identifier.includes("@");
+
+    const user = await prisma.user.findFirst({
+      where: isEmail
+        ? { email: identifier }
+        : { phone: identifier }
+    });
+
     if (!user || !user.password) {
       throw new AppError(
         "Invalid credentials",
