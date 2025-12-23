@@ -2,7 +2,14 @@ import { Router } from "express";
 import { AuthController } from "@/controllers/auth.controller";
 import { AuthService } from "@/services/auth.service";
 import { validateRequest } from "@/middleware/validateRequest";
-import { loginSchema, signupSchema, verifyEmailSchema, resendVerificationSchema, forgotPasswordSchema, resetPasswordSchema } from "@/validators/auth.validator";
+import {
+  loginSchema,
+  signupSchema,
+  verifyEmailSchema,
+  resendVerificationSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from "@/validators/auth.validator";
 import { requireAuth } from "@/middleware/authMiddleware";
 import { verificationLimiter } from "@/middleware/rateLimiter";
 
@@ -71,9 +78,12 @@ router.post("/signup", validateRequest(signupSchema), authController.signup);
  *           schema:
  *             type: object
  *             required:
- *               - identifier
  *               - password
  *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email address (deprecated - use identifier instead)
  *               identifier:
  *                 type: string
  *                 description: Email address or phone number (e.g., "user@example.com" or "770108469")
@@ -171,7 +181,11 @@ router.post("/logout", requireAuth, authController.logout);
  *       404:
  *         description: Token not found
  */
-router.get("/verify-email/:token", validateRequest(verifyEmailSchema), authController.verifyEmail);
+router.get(
+  "/verify-email/:token",
+  validateRequest(verifyEmailSchema),
+  authController.verifyEmail,
+);
 
 /**
  * @swagger
@@ -201,7 +215,7 @@ router.post(
   "/send-email-verification",
   verificationLimiter,
   validateRequest(resendVerificationSchema),
-  authController.resendVerification
+  authController.resendVerification,
 );
 
 /**
@@ -226,7 +240,11 @@ router.post(
  *       200:
  *         description: Reset email sent if email exists
  */
-router.post("/forgot-password", validateRequest(forgotPasswordSchema), authController.forgotPassword);
+router.post(
+  "/forgot-password",
+  validateRequest(forgotPasswordSchema),
+  authController.forgotPassword,
+);
 
 /**
  * @swagger
@@ -262,6 +280,10 @@ router.post("/forgot-password", validateRequest(forgotPasswordSchema), authContr
  *       404:
  *         description: Token not found
  */
-router.post("/reset-password/:token", validateRequest(resetPasswordSchema), authController.resetPassword);
+router.post(
+  "/reset-password/:token",
+  validateRequest(resetPasswordSchema),
+  authController.resetPassword,
+);
 
 export default router;

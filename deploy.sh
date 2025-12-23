@@ -20,7 +20,7 @@ npm ci --production
 
 # Build the project
 echo "🔨 Building project..."
-npm run build
+yarn build
 
 # Restart PM2 processes with environment variable updates
 echo "🔄 Restarting PM2 processes..."

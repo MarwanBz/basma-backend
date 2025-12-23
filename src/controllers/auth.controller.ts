@@ -19,14 +19,14 @@ export class AuthController extends BaseController {
         return await this.authService.signup(email, name, password);
       },
       201,
-      "User created successfully"
+      "User created successfully",
     );
   };
 
   login = (req: Request, res: Response, next: NextFunction): void => {
     this.handleRequest(req, res, next, async () => {
-      const { identifier, password } = req.body;
-      return await this.authService.login(identifier, password);
+      const { identifier, email, password } = req.body;
+      return await this.authService.login(identifier || email, password);
     });
   };
 
@@ -57,7 +57,7 @@ export class AuthController extends BaseController {
   resendVerification = (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): void => {
     this.handleRequest(req, res, next, async () => {
       const { email } = req.body;

@@ -10,16 +10,21 @@ export const signupSchema = z.object({
       .max(100)
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-        "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"
+        "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character",
       ),
   }),
 });
 
 export const loginSchema = z.object({
-  body: z.object({
-    identifier: z.string().min(1, "Email or phone is required"),
-    password: z.string().min(6),
-  }),
+  body: z
+    .object({
+      email: z.string().min(1).optional(),
+      identifier: z.string().min(1).optional(),
+      password: z.string().min(6),
+    })
+    .refine((data) => data.email || data.identifier, {
+      message: "Email or identifier is required",
+    }),
 });
 
 export const refreshTokenSchema = z.object({
@@ -57,7 +62,7 @@ export const resetPasswordSchema = z.object({
       .max(100)
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-        "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"
+        "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character",
       ),
   }),
 });
