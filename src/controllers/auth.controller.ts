@@ -15,8 +15,8 @@ export class AuthController extends BaseController {
       res,
       next,
       async () => {
-        const { email, name, password } = req.body;
-        return await this.authService.signup(email, name, password);
+        const { email, name, password, phone } = req.body;
+        return await this.authService.signup(email, name, password, phone);
       },
       201,
       "User created successfully",

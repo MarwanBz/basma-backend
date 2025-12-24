@@ -12,7 +12,7 @@ export class SuperAdminController extends BaseController {
   // User Management
   createUser = (req: Request, res: Response, next: NextFunction): void => {
     this.handleRequest(req, res, next, async () => {
-      const { name, email, password, role } = req.body;
+      const { name, email, password, phone, role } = req.body;
 
       if (!name || !email || !password || !role) {
         throw new AppError("Name, email, password, and role are required", 400);
@@ -22,6 +22,7 @@ export class SuperAdminController extends BaseController {
         name,
         email,
         password,
+        phone,
         role,
       });
     });
@@ -47,11 +48,12 @@ export class SuperAdminController extends BaseController {
   updateUser = (req: Request, res: Response, next: NextFunction): void => {
     this.handleRequest(req, res, next, async () => {
       const { id } = req.params;
-      const { name, email, role, password } = req.body;
+      const { name, email, phone, role, password } = req.body;
 
       return await this.superAdminService.updateUser(id, {
         name,
         email,
+        phone,
         role,
         password,
       });

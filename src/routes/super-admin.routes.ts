@@ -82,6 +82,7 @@ const createUserSchema = z.object({
     name: z.string().min(1, "Name is required"),
     email: z.string().email("Invalid email format"),
     password: z.string().min(6, "Password must be at least 6 characters"),
+    phone: z.string().length(9).optional(),
     role: z.enum([
       "SUPER_ADMIN",
       "MAINTENANCE_ADMIN",
@@ -101,6 +102,7 @@ const updateUserSchema = z.object({
   body: z.object({
     name: z.string().min(1).optional(),
     email: z.string().email("Invalid email format").optional(),
+    phone: z.string().length(9).optional(),
     role: z
       .enum([
         "SUPER_ADMIN",
