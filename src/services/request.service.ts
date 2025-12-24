@@ -87,19 +87,16 @@ export class RequestService {
         },
       });
 
-      // DEPRECATED: FCM notification service - moved to src/deprecated/notifications/
-      // Send FCM notification to maintenance admins about new request
-      // notificationService
-      //   .notifyNewRequest(
-      //     request.id,
-      //     request.title,
-      //     request.priority,
-      //     request.building || undefined
-      //   )
-      //   .catch((error) => {
-      //     // Log error but don't fail the request
-      //     console.error("Failed to send new request notification:", error);
-      //   });
+      // Send notification to admins about new request
+      await notificationService.notifyAdmins({
+        title: `New Request ${customIdentifier}`,
+        body: `${request.title} (${request.priority})`,
+        type: "new_request",
+        data: {
+          requestId: request.id,
+          priority: request.priority,
+        },
+      });
 
       return request;
     } catch (error) {
