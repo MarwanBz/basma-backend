@@ -20,10 +20,11 @@ export const loginSchema = z.object({
     .object({
       email: z.string().min(1).optional(),
       identifier: z.string().min(1).optional(),
+      phone: z.string().min(1).optional(),
       password: z.string().min(6),
     })
-    .refine((data) => data.email || data.identifier, {
-      message: "Email or identifier is required",
+    .refine((data) => data.email || data.identifier || data.phone, {
+      message: "Email, identifier or phone is required",
     }),
 });
 

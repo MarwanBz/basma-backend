@@ -25,8 +25,8 @@ export class AuthController extends BaseController {
 
   login = (req: Request, res: Response, next: NextFunction): void => {
     this.handleRequest(req, res, next, async () => {
-      const { identifier, email, password } = req.body;
-      return await this.authService.login(identifier || email, password);
+      const { identifier, email, phone, password } = req.body;
+      return await this.authService.login(identifier || email || phone, password);
     });
   };
 
