@@ -10,6 +10,7 @@ export class SuperAdminService {
     name: string;
     email: string;
     password: string;
+    phone?: string;
     role:
       | "SUPER_ADMIN"
       | "MAINTENANCE_ADMIN"
@@ -26,6 +27,13 @@ export class SuperAdminService {
       throw new AppError("Email already exists", 400);
     }
 
+    if (data.phone) {
+      const existingPhone = await prisma.user.findUnique({ where: { phone: data.phone } });
+      if (existingPhone) {
+        throw new AppError("Phone number already exists", 400);
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     return await prisma.user.create({
@@ -37,6 +45,7 @@ export class SuperAdminService {
         id: true,
         name: true,
         email: true,
+        phone: true,
         role: true,
         createdAt: true,
         updatedAt: true,
@@ -104,6 +113,7 @@ export class SuperAdminService {
     data: Partial<{
       name: string;
       email: string;
+      phone?: string;
       role:
         | "SUPER_ADMIN"
         | "MAINTENANCE_ADMIN"
@@ -128,6 +138,7 @@ export class SuperAdminService {
         id: true,
         name: true,
         email: true,
+        phone: true,
         role: true,
         emailVerified: true,
         createdAt: true,

@@ -45,6 +45,8 @@ export class UserService {
     data: Partial<{
       name: string;
       email: string;
+      phone?: string;
+      password: string;
       role:
         | "SUPER_ADMIN"
         | "MAINTENANCE_ADMIN"
@@ -62,6 +64,7 @@ export class UserService {
         id: true,
         name: true,
         email: true,
+        phone: true,
         role: true,
         createdAt: true,
         updatedAt: true,
@@ -79,6 +82,7 @@ export class UserService {
     name: string;
     email: string;
     password: string;
+    phone?: string;
     role?:
       | "SUPER_ADMIN"
       | "MAINTENANCE_ADMIN"
@@ -94,6 +98,7 @@ export class UserService {
         id: true,
         name: true,
         email: true,
+        phone: true,
         role: true,
         createdAt: true,
         updatedAt: true,

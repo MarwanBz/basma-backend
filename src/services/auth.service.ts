@@ -21,10 +21,17 @@ export class AuthService {
     return crypto.randomBytes(32).toString("hex");
   }
 
-  async signup(email: string, name: string, password: string) {
+  async signup(email: string, name: string, password: string, phone?: string) {
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       throw new AppError("Email already exists", 400, ErrorCode.ALREADY_EXISTS);
+    }
+
+    if (phone) {
+      const existingPhone = await prisma.user.findUnique({ where: { phone } });
+      if (existingPhone) {
+        throw new AppError("Phone number already exists", 400, ErrorCode.ALREADY_EXISTS);
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -37,13 +44,13 @@ export class AuthService {
         email,
         name,
         password: hashedPassword,
-        // emailVerificationToken: verificationToken,
-        // emailVerificationExpires: verificationExpires,
+        phone,
       },
       select: {
         id: true,
         email: true,
         name: true,
+        phone: true,
         role: true,
         createdAt: true,
       },

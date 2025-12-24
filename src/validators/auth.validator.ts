@@ -10,8 +10,9 @@ export const signupSchema = z.object({
       .max(100)
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-        "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character",
+        "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"
       ),
+    phone: z.string().length(9).optional(),
   }),
 });
 
