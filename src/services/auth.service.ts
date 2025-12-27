@@ -7,6 +7,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { logger } from "@/config/logger";
+import { messages } from "@/config/messages.ar";
 
 const prisma = new PrismaClient();
 
@@ -24,13 +25,21 @@ export class AuthService {
   async signup(email: string, name: string, password: string, phone?: string) {
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      throw new AppError("Email already exists", 400, ErrorCode.ALREADY_EXISTS);
+      throw new AppError(
+        messages.errors.emailAlreadyExists,
+        400,
+        ErrorCode.ALREADY_EXISTS
+      );
     }
 
     if (phone) {
       const existingPhone = await prisma.user.findUnique({ where: { phone } });
       if (existingPhone) {
-        throw new AppError("Phone number already exists", 400, ErrorCode.ALREADY_EXISTS);
+        throw new AppError(
+          messages.errors.phoneAlreadyExists,
+          400,
+          ErrorCode.ALREADY_EXISTS
+        );
       }
     }
 
@@ -75,7 +84,7 @@ export class AuthService {
 
     if (!user) {
       throw new AppError(
-        "Invalid or expired verification token",
+        messages.errors.invalidToken,
         400,
         ErrorCode.INVALID_TOKEN
       );
@@ -90,7 +99,7 @@ export class AuthService {
       },
     });
 
-    return { message: "Email verified successfully" };
+    return { message: messages.success.emailVerified };
   }
 
   private async cleanupExpiredTokens() {
@@ -117,12 +126,16 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new AppError("User not found", 404, ErrorCode.NOT_FOUND);
+      throw new AppError(
+        messages.errors.userNotFound,
+        404,
+        ErrorCode.NOT_FOUND
+      );
     }
 
     if (user.emailVerified) {
       throw new AppError(
-        "Email is already verified",
+        messages.errors.emailAlreadyExists,
         400,
         ErrorCode.INVALID_REQUEST
       );
@@ -143,7 +156,7 @@ export class AuthService {
       verificationToken
     );
 
-    return { message: "Verification email sent" };
+    return { message: messages.success.verificationEmailSent };
   }
 
   async login(identifier: string, password: string) {
@@ -151,14 +164,12 @@ export class AuthService {
     const isEmail = identifier.includes("@");
 
     const user = await prisma.user.findFirst({
-      where: isEmail
-        ? { email: identifier }
-        : { phone: identifier }
+      where: isEmail ? { email: identifier } : { phone: identifier },
     });
 
     if (!user || !user.password) {
       throw new AppError(
-        "Invalid credentials",
+        messages.errors.invalidCredentials,
         401,
         ErrorCode.INVALID_CREDENTIALS
       );
@@ -176,7 +187,7 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new AppError(
-        "Invalid credentials",
+        messages.errors.invalidCredentials,
         401,
         ErrorCode.INVALID_CREDENTIALS
       );
@@ -206,7 +217,7 @@ export class AuthService {
   async refresh(refreshToken: string) {
     if (!refreshToken) {
       throw new AppError(
-        "Refresh token is required",
+        messages.validation.refreshTokenRequired,
         400,
         ErrorCode.INVALID_TOKEN
       );
@@ -231,7 +242,7 @@ export class AuthService {
 
       if (!user) {
         throw new AppError(
-          "Invalid refresh token",
+          messages.errors.invalidRefreshToken,
           401,
           ErrorCode.INVALID_TOKEN
         );
@@ -260,13 +271,21 @@ export class AuthService {
         error,
         context: "AuthService.refresh",
       });
-      throw new AppError("Invalid refresh token", 401, ErrorCode.INVALID_TOKEN);
+      throw new AppError(
+        messages.errors.invalidRefreshToken,
+        401,
+        ErrorCode.INVALID_TOKEN
+      );
     }
   }
 
   async logout(userId: string) {
     if (!userId) {
-      throw new AppError("User ID is required", 400, ErrorCode.INVALID_INPUT);
+      throw new AppError(
+        messages.errors.userIdRequired,
+        400,
+        ErrorCode.INVALID_INPUT
+      );
     }
 
     try {
@@ -281,7 +300,7 @@ export class AuthService {
         context: "AuthService.logout",
       });
       throw new AppError(
-        "Failed to logout",
+        messages.errors.internalServerError,
         500,
         ErrorCode.INTERNAL_SERVER_ERROR
       );
@@ -303,7 +322,11 @@ export class AuthService {
   async forgotPassword(email: string) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      throw new AppError("User not found", 404, ErrorCode.NOT_FOUND);
+      throw new AppError(
+        messages.errors.userNotFound,
+        404,
+        ErrorCode.NOT_FOUND
+      );
     }
 
     const resetToken = this.generateVerificationToken();
@@ -323,7 +346,7 @@ export class AuthService {
         user.name,
         resetToken
       );
-      return { message: "Password reset email sent" };
+      return { message: messages.success.passwordResetEmailSent };
     } catch (error) {
       // If email fails, clear the reset token
       await prisma.user.update({
@@ -349,7 +372,7 @@ export class AuthService {
 
     if (!user) {
       throw new AppError(
-        "Invalid or expired reset token",
+        messages.errors.invalidToken,
         400,
         ErrorCode.INVALID_TOKEN
       );
@@ -366,6 +389,6 @@ export class AuthService {
       },
     });
 
-    return { message: "Password reset successfully" };
+    return { message: messages.success.passwordReset };
   }
 }
