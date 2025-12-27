@@ -1,10 +1,11 @@
 import { Response } from "express";
+import { messages } from "@/config/messages.ar";
 
 export class ApiResponse {
   static success(
     res: Response,
     data: any = null,
-    message: string = "Success",
+    message: string = messages.success.default,
     statusCode: number = 200
   ): void {
     res.status(statusCode).json({

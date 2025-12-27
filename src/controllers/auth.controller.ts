@@ -3,6 +3,8 @@ import { NextFunction, Request, Response } from "express";
 import { AppError } from "@/utils/appError";
 import { AuthService } from "@/services/auth.service";
 import { BaseController } from "./base.controller";
+import { messages } from "@/config/messages.ar";
+import { ErrorCode } from "@/utils/errorCodes";
 
 export class AuthController extends BaseController {
   constructor(private authService: AuthService) {
@@ -19,7 +21,7 @@ export class AuthController extends BaseController {
         return await this.authService.signup(email, name, password, phone);
       },
       201,
-      "User created successfully",
+      messages.success.userCreated,
     );
   };
 
@@ -33,10 +35,10 @@ export class AuthController extends BaseController {
   logout = (req: Request, res: Response, next: NextFunction): void => {
     this.handleRequest(req, res, next, async () => {
       if (!req.user?.userId) {
-        throw new AppError("Unauthorized", 401);
+        throw new AppError(messages.errors.unauthorized, 401, ErrorCode.UNAUTHORIZED);
       }
       await this.authService.logout(req.user.userId);
-      return { message: "Logged out successfully" };
+      return { message: messages.success.loggedOut };
     });
   };
 

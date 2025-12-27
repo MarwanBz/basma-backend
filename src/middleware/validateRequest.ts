@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { AnyZodObject, ZodError } from "zod";
 import { ValidationError } from "@/utils/errorHandler";
+import { translateValidationError } from "@/utils/i18n";
+import { messages } from "@/config/messages.ar";
 
 export const validateRequest = (schema: AnyZodObject, target: 'body' | 'query' | 'params' | 'all' = 'all') => {
   return (req: Request, res: Response, next: NextFunction): void => {
@@ -32,10 +34,12 @@ export const validateRequest = (schema: AnyZodObject, target: 'body' | 'query' |
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        next(new ValidationError(error.errors[0]?.message || "Validation failed"));
+        const originalMessage = error.errors[0]?.message || "Validation failed";
+        const arabicMessage = translateValidationError(originalMessage);
+        next(new ValidationError(arabicMessage));
         return;
       }
-      next(new ValidationError("Invalid request data"));
+      next(new ValidationError(messages.errors.invalidRequestData));
     }
   };
 };

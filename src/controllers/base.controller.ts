@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import { ApiResponse } from "@/utils/apiResponse";
+import { messages } from "@/config/messages.ar";
 
 export abstract class BaseController {
   protected async handleRequest(
@@ -9,7 +10,7 @@ export abstract class BaseController {
     next: NextFunction,
     action: () => Promise<any>,
     successStatus: number = 200,
-    successMessage: string = "Success"
+    successMessage: string = messages.success.default
   ): Promise<void> {
     try {
       const result = await action();
