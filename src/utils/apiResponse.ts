@@ -1,6 +1,5 @@
 import { Response } from "express";
 import { messages } from "@/config/messages.ar";
-import { translateErrorMessage } from "@/utils/i18n";
 
 export class ApiResponse {
   static success(
@@ -23,12 +22,9 @@ export class ApiResponse {
     statusCode: number = 400,
     code?: string
   ): void {
-    // Translate English error messages to Arabic
-    const arabicMessage = translateErrorMessage(message);
-
     res.status(statusCode).json({
       success: false,
-      message: arabicMessage,
+      message,
       code,
       requestId: res.getHeader("X-Request-ID") || res.getHeader("X-Request-Id"),
       ...(process.env.NODE_ENV === "development" && {
