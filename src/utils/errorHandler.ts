@@ -2,6 +2,7 @@ import { AppError } from "./appError";
 import { logger } from "@/config/logger";
 import { ErrorCode } from "./errorCodes";
 import { Prisma } from "@prisma/client";
+import { messages } from "@/config/messages.ar";
 
 export class ErrorHandler {
   static handle(error: unknown, context: string) {
@@ -33,7 +34,7 @@ export class ErrorHandler {
 
     // Log unknown errors
     const unknownError = new AppError(
-      "Internal server error",
+      messages.errors.internalServerError,
       500,
       ErrorCode.INTERNAL_SERVER_ERROR,
       false
@@ -55,14 +56,14 @@ export class ErrorHandler {
     switch (error.code) {
       case "P2002":
         return new AppError(
-          "Resource already exists",
+          messages.errors.resourceAlreadyExists,
           409,
           ErrorCode.ALREADY_EXISTS
         );
       case "P2025":
-        return new AppError("Resource not found", 404, ErrorCode.NOT_FOUND);
+        return new AppError(messages.errors.resourceNotFound, 404, ErrorCode.NOT_FOUND);
       default:
-        return new AppError("Database error", 500, ErrorCode.DB_ERROR, false);
+        return new AppError(messages.errors.databaseError, 500, ErrorCode.DB_ERROR, false);
     }
   }
 }
