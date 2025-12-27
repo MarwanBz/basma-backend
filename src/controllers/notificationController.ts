@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import getFirebaseAdmin from "./firebase/firebase-admin";
 import { PrismaClient } from "@prisma/client";
+import { messages } from "@/config/messages.ar";
+
 const prisma = new PrismaClient();
 
 // Device registration
@@ -9,13 +11,13 @@ export const registerDevice = async (req: Request, res: Response) => {
     const { token, platform, deviceId, appVersion } = req.body;
 
     if (!token || !platform) {
-      return res.status(400).json({ error: "Token and platform are required" });
+      return res.status(400).json({ error: messages.errors.missingRequiredFields });
     }
 
     // Get user ID from authenticated request
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
+      return res.status(401).json({ error: messages.errors.userNotAuthenticated });
     }
 
     // Save token to database
@@ -54,7 +56,7 @@ export const registerDevice = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error in registerDevice API:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: messages.errors.internalServerError });
   }
 };
 
@@ -63,13 +65,13 @@ export const unregisterDevice = async (req: Request, res: Response) => {
     const { token } = req.body;
 
     if (!token) {
-      return res.status(400).json({ error: "Token is required" });
+      return res.status(400).json({ error: messages.errors.missingRequiredFields });
     }
 
     // Get user ID from authenticated request
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
+      return res.status(401).json({ error: messages.errors.userNotAuthenticated });
     }
 
     // Delete token from database
@@ -82,11 +84,11 @@ export const unregisterDevice = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       success: true,
-      message: "Device unregistered successfully",
+      message: messages.success.deviceUnregistered,
     });
   } catch (error) {
     console.error("Error in unregisterDevice API:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: messages.errors.internalServerError });
   }
 };
 
@@ -95,7 +97,7 @@ export const getSubscriptions = async (req: Request, res: Response) => {
     // Get user ID from authenticated request
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
+      return res.status(401).json({ error: messages.errors.userNotAuthenticated });
     }
 
     // Get all devices for user
@@ -133,7 +135,7 @@ export const getSubscriptions = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error in getSubscriptions API:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: messages.errors.internalServerError });
   }
 };
 
@@ -142,13 +144,13 @@ export const unsubscribeTopic = async (req: Request, res: Response) => {
     const { token, topic } = req.body;
 
     if (!token || !topic) {
-      return res.status(400).json({ error: "Token and topic are required" });
+      return res.status(400).json({ error: messages.errors.missingRequiredFields });
     }
 
     // Get user ID from authenticated request
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
+      return res.status(401).json({ error: messages.errors.userNotAuthenticated });
     }
 
     const messaging = getFirebaseAdmin();
@@ -181,7 +183,7 @@ export const unsubscribeTopic = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error in unsubscribe-topic API:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: messages.errors.internalServerError });
   }
 };
 
@@ -190,7 +192,7 @@ export const sendAnnouncement = async (req: Request, res: Response) => {
     const { title, body, targetRole, announcementId } = req.body;
 
     if (!title || !body) {
-      return res.status(400).json({ error: "Title and body are required" });
+      return res.status(400).json({ error: messages.errors.missingRequiredFields });
     }
 
     const messaging = getFirebaseAdmin();
@@ -220,12 +222,12 @@ export const sendAnnouncement = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       success: true,
-      message: "Announcement sent successfully",
+      message: messages.success.announcementSent,
     });
   } catch (error: any) {
     console.error("Error sending announcement:", error);
     return res.status(500).json({
-      error: "Failed to send announcement",
+      error: messages.errors.internalServerError,
       details: error.message,
     });
   }
@@ -236,7 +238,7 @@ export const sendTestNotification = async (req: Request, res: Response) => {
     const { token, userId, topic, title, body, data } = req.body;
 
     if (!title || !body) {
-      return res.status(400).json({ error: "Title and body are required" });
+      return res.status(400).json({ error: messages.errors.missingRequiredFields });
     }
 
     const messaging = getFirebaseAdmin();
@@ -265,7 +267,7 @@ export const sendTestNotification = async (req: Request, res: Response) => {
     } else {
       return res
         .status(400)
-        .json({ error: "Either token or topic is required" });
+        .json({ error: messages.errors.userIdOrTopicRequired });
     }
 
     const response = await messaging.send(message);
@@ -274,7 +276,7 @@ export const sendTestNotification = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       success: true,
-      message: "Test notification sent successfully",
+      message: messages.success.testNotificationSent,
       data: {
         success: true,
         messageId: response,
@@ -285,7 +287,7 @@ export const sendTestNotification = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("Error sending test notification:", error);
     return res.status(500).json({
-      error: "Failed to send test notification",
+      error: messages.errors.internalServerError,
       details: error.message,
     });
   }
@@ -296,13 +298,13 @@ export const subscribeTopic = async (req: Request, res: Response) => {
     const { token, topic } = req.body;
 
     if (!token || !topic) {
-      return res.status(400).json({ error: "Token and topic are required" });
+      return res.status(400).json({ error: messages.errors.missingRequiredFields });
     }
 
     // Get user ID from authenticated request
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
+      return res.status(401).json({ error: messages.errors.userNotAuthenticated });
     }
 
     const messaging = getFirebaseAdmin();
@@ -316,7 +318,7 @@ export const subscribeTopic = async (req: Request, res: Response) => {
         response.failureCount,
         "failures",
       );
-      return res.status(400).json({ error: "Failed to subscribe to topic" });
+      return res.status(400).json({ error: messages.errors.failedToSubscribeToTopic });
     }
 
     // Save token to database if it doesn't exist
@@ -363,7 +365,7 @@ export const subscribeTopic = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error in subscribe-topic API:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: messages.errors.internalServerError });
   }
 };
 
@@ -373,7 +375,7 @@ export const sendToTopic = async (req: Request, res: Response) => {
 
     if (!topic || !title || !body) {
       return res.status(400).json({
-        error: "Topic, title, and body are required",
+        error: messages.errors.missingRequiredFields,
       });
     }
 
@@ -403,7 +405,7 @@ export const sendToTopic = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("Error sending notification to topic:", error);
     return res.status(500).json({
-      error: "Failed to send notification",
+      error: messages.errors.internalServerError,
       details: error.message,
     });
   }
